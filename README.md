@@ -1,3 +1,3 @@
 # TypeWriter-EnchantmentCreator
-Create Enchantments with typewriter
+https://borntocraftstudio.net/wiki/typewriterextensions/twec
 
