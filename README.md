@@ -2,7 +2,7 @@
 
 ![Java Version](https://img.shields.io/badge/Java-21-orange)
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
-![Target](https://img.shields.io/badge/Target-Paper%20/%20Folia%20/%20TypeWriter-blue)
+![Target](https://img.shields.io/badge/Target-Paper%20/%20Folia%20/%20BTC--CORE-blue)
 
 **EnchantmentCreator Extension** is a custom content module for **TypeWriter**, engineered for **BTC Studio** infrastructure. It enables the creation of complex enchantments with custom triggers, criteria, and cooldowns.
 
@@ -44,7 +44,7 @@ cd EnchantmentCreatorExtension
 
 ## 🤝 Credits & Inspiration
 - **[TypeWriter](https://github.com/gabber235/Typewriter)** - The engine this extension is built for.
-- **[BTC Studio](https://github.com/RenaudRl)** - Maintenance and specialized optimizations.
+- **[BTC Studio](https://borntocraft.fr)** - Maintenance and specialized optimizations.
 
 ---
 
