@@ -27,7 +27,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.enchantment.PrepareItemEnchantEvent
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent
-import com.typewritermc.engine.paper.utils.FoliaScheduler
+import org.bukkit.scheduler.BukkitTask
 import java.util.UUID
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
@@ -42,7 +42,7 @@ object EnchantmentManager : Initializable, Listener {
     private val lastRun = ConcurrentHashMap<Pair<UUID, RegisteredEnchantment>, Long>()
     internal val active = ConcurrentHashMap<UUID, MutableSet<RegisteredEnchantment>>()
     private var vanillaBlacklist: Set<Enchantment> = emptySet()
-    private var task: FoliaScheduler.TaskHandle? = null
+    private var task: BukkitTask? = null
     private var registry: Any? = null
 
     private fun buildDescription(def: RegisteredEnchantment): Component {
@@ -62,7 +62,7 @@ object EnchantmentManager : Initializable, Listener {
         customDefinitions.forEach { ensureRegistered(it) }
         reloadVanillaBlacklist()
         plugin.registerEvents(this)
-        task = FoliaScheduler.runAtFixedRate(5L, 5L) { tick() }
+        task = plugin.server.scheduler.runTaskTimer(plugin, Runnable { tick() }, 5L, 5L)
     }
 
     override suspend fun shutdown() {
@@ -379,11 +379,11 @@ object EnchantmentManager : Initializable, Listener {
         // registered, preventing race conditions where unknown enchantments
         // corrupt player data.
         runCatching {
-            FoliaScheduler.runSync {
+            plugin.server.scheduler.runTask(plugin, Runnable {
                 definitions.forEach { ensureRegistered(it) }
                 customDefinitions.forEach { ensureRegistered(it) }
                 reloadVanillaBlacklist()
-            }
+            })
         }.onFailure {
             plugin.logger.log(Level.SEVERE, "Failed to register enchantments during pre-login", it)
         }
