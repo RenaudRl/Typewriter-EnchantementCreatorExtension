@@ -1,6 +1,5 @@
 package btcrenaud.enchantment.actions.bow
 
-import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
 import com.typewritermc.core.extension.annotations.Help
@@ -21,7 +20,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent
 @Entry(
     name = "web_arrow_action",
     description = "Encases the target in a temporary cobweb",
-    color = Colors.GRAY,
+    color = "#9E9E9E",
     icon = "mdi:spider-web"
 )
 class WebArrowActionEntry(

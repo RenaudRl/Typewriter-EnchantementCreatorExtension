@@ -1,6 +1,5 @@
 package btcrenaud.enchantment.actions.armor
 
-import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
 import com.typewritermc.core.extension.annotations.Help
@@ -20,7 +19,7 @@ import org.bukkit.event.Event
 @Entry(
     name = "anti_knockback_action",
     description = "Provides knockback resistance when equipped",
-    color = Colors.BROWN,
+    color = "#8D6E63",
     icon = "mdi:anvil"
 )
 class AntiKnockbackActionEntry(

@@ -1,6 +1,5 @@
 package btcrenaud.enchantment.actions.tools
 
-import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
 import com.typewritermc.core.extension.annotations.Help
@@ -22,7 +21,7 @@ import org.bukkit.inventory.meta.BlockStateMeta
 @Entry(
     name = "spawners_silktouch_action",
     description = "Allows the player to mine and collect Mob Spawners",
-    color = Colors.GRAY,
+    color = "#9E9E9E",
     icon = "mdi:pig"
 )
 class SpawnersSilkTouchActionEntry(

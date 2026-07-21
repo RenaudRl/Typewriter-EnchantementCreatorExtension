@@ -79,7 +79,22 @@ object EnchantmentMechanicListener : Initializable, Listener {
         }
         if (entity is Player) {
             processEvent(entity, EnchantmentEvent.PLAYER_DEFEND, event)
+            if (entity.isBlocking) {
+                processEvent(entity, EnchantmentEvent.SHIELD_BLOCK, event)
+            }
         }
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    fun onToggleSneak(event: org.bukkit.event.player.PlayerToggleSneakEvent) {
+        if (!event.isSneaking) return
+        processEvent(event.player, EnchantmentEvent.SNEAK, event)
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    fun onToggleSprint(event: org.bukkit.event.player.PlayerToggleSprintEvent) {
+        if (!event.isSprinting) return
+        processEvent(event.player, EnchantmentEvent.SPRINT, event)
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)

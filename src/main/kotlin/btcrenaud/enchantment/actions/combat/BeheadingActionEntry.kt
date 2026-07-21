@@ -1,6 +1,5 @@
 package btcrenaud.enchantment.actions.combat
 
-import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
 import com.typewritermc.core.extension.annotations.Help
@@ -29,7 +28,7 @@ import kotlin.random.Random
 @Entry(
     name = "beheading_action",
     description = "Has a chance to drop the victim's head on kill",
-    color = Colors.BROWN,
+    color = "#8D6E63",
     icon = "mdi:account-switch"
 )
 class BeheadingActionEntry(

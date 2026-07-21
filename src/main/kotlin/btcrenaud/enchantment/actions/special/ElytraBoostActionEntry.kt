@@ -1,6 +1,5 @@
 package btcrenaud.enchantment.actions.special
 
-import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
 import com.typewritermc.core.extension.annotations.Help
@@ -19,7 +18,7 @@ import org.bukkit.event.block.Action
 @Entry(
     name = "elytra_boost_action",
     description = "Gives a periodic boost while gliding with Elytra when right-clicking",
-    color = Colors.GRAY,
+    color = "#9E9E9E",
     icon = "mdi:bird"
 )
 class ElytraBoostActionEntry(

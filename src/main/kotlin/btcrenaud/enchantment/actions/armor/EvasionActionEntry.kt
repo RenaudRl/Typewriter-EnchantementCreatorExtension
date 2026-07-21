@@ -1,6 +1,5 @@
 package btcrenaud.enchantment.actions.armor
 
-import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
 import com.typewritermc.core.extension.annotations.Help
@@ -19,7 +18,7 @@ import kotlin.random.Random
 @Entry(
     name = "evasion_action",
     description = "Gives a chance to completely dodge and cancel incoming damage",
-    color = Colors.GRAY,
+    color = "#9E9E9E",
     icon = "mdi:run-fast"
 )
 class EvasionActionEntry(

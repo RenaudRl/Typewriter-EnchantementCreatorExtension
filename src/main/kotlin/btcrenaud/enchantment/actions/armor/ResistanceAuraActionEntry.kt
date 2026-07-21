@@ -1,6 +1,5 @@
 package btcrenaud.enchantment.actions.armor
 
-import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
 import com.typewritermc.core.extension.annotations.Help
@@ -20,7 +19,7 @@ import org.bukkit.potion.PotionEffectType
 @Entry(
     name = "resistance_aura_action",
     description = "Grants a defensive buff (resistance) when attacked in combat",
-    color = Colors.GRAY,
+    color = "#9E9E9E",
     icon = "mdi:shield-outline"
 )
 class ResistanceAuraActionEntry(

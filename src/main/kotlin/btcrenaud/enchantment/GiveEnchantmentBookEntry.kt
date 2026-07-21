@@ -10,7 +10,7 @@ import com.typewritermc.engine.paper.entry.Modifier
 import com.typewritermc.engine.paper.entry.TriggerableEntry
 import com.typewritermc.engine.paper.entry.entries.ActionEntry
 import com.typewritermc.engine.paper.entry.entries.ActionTrigger
-import com.typewritermc.engine.paper.plugin
+import com.typewritermc.engine.paper.logger
 import com.typewritermc.engine.paper.utils.Sync
 import com.typewritermc.core.utils.launch
 import kotlinx.coroutines.Dispatchers
@@ -51,44 +51,41 @@ class GiveEnchantmentBookEntry(
 ) : ActionEntry {
     override fun ActionTrigger.execute() {
         val def: RegisteredEnchantment = customEnchantment.get() ?: enchantment.get() ?: return
-        // All operations interacting with Bukkit APIs must run on the main
-        // thread to avoid accessing unbound registry values. Construct the
-        // enchanted book synchronously and then hand it to the player.
+        // All registry and inventory interactions must run on the server
+        // thread to avoid touching unbound registry values. Build the book
+        // there and hand it to the player in the same hop.
         Dispatchers.Sync.launch {
-            // Ensure the enchantment exists before creating the book. This
-            // mirrors vanilla behaviour and allows books to be generated even
-            // if definitions were loaded after the extension was initialized.
-            if (def is EnchantmentDefinition) {
-                EnchantmentManager.ensureRegistered(def)
-            } else if (def is CustomEnchantmentDefinition) {
-                EnchantmentManager.ensureRegistered(def)
-            }
+            // Registration is idempotent: this covers definitions that were
+            // published after the extension finished initializing.
+            EnchantmentManager.ensureRegistered(def)
             val ench = EnchantmentManager.getEnchantment(def)
             if (ench == null) {
+                logger.warning(
+                    "Cannot give enchantment book for '${def.name}': the enchantment could not be registered."
+                )
                 return@launch
             }
             val item = ItemStack(Material.ENCHANTED_BOOK, amount)
             val meta = item.itemMeta as? EnchantmentStorageMeta ?: return@launch
             meta.addStoredEnchant(ench, level, true)
             meta.addItemFlags(ItemFlag.HIDE_STORED_ENCHANTS)
-        val placeholders = mapOf(
-            "{enchantment}" to def.displayName,
-            "{enchantment_lore}" to def.enchantmentLore.ifBlank { def.displayName },
-            "{level}" to toRoman(level)
-        )
-        val nameText = placeholders.entries.fold(bookName) { acc, (k, v) -> acc.replace(k, v) }
-        meta.displayName(nameText.parsePlaceholders(player).asMini())
-        val colorTag = if (def.nameColor.startsWith("<")) def.nameColor else "<${def.nameColor}>"
-        val closeTag = if (def.nameColor.startsWith("<")) "" else "</${def.nameColor}>"
-        val enchantmentLoreComponents = enchantmentLore.map { line ->
-            val processed = placeholders.entries.fold(line) { acc, (k, v) -> acc.replace(k, v) }
-            "$colorTag$processed$closeTag".parsePlaceholders(player).asMini()
-                .decoration(TextDecoration.ITALIC, false)
-        }
-        val additionalLoreComponents = bookLore.map { line ->
-            val processed = placeholders.entries.fold(line) { acc, (k, v) -> acc.replace(k, v) }
-            processed.parsePlaceholders(player).asMini()
-        }
+            val placeholders = mapOf(
+                "{enchantment}" to def.displayName,
+                "{enchantment_lore}" to def.enchantmentLore.ifBlank { def.displayName },
+                "{level}" to toRoman(level)
+            )
+            val nameText = placeholders.entries.fold(bookName) { acc, (k, v) -> acc.replace(k, v) }
+            meta.displayName(nameText.parsePlaceholders(player).asMini())
+            val (openTag, closeTag) = def.nameColor.miniColorTags()
+            val enchantmentLoreComponents = enchantmentLore.map { line ->
+                val processed = placeholders.entries.fold(line) { acc, (k, v) -> acc.replace(k, v) }
+                "$openTag$processed$closeTag".parsePlaceholders(player).asMini()
+                    .decoration(TextDecoration.ITALIC, false)
+            }
+            val additionalLoreComponents = bookLore.map { line ->
+                val processed = placeholders.entries.fold(line) { acc, (k, v) -> acc.replace(k, v) }
+                processed.parsePlaceholders(player).asMini()
+            }
             val loreComponents = enchantmentLoreComponents + additionalLoreComponents
             if (loreComponents.isNotEmpty()) {
                 meta.lore(loreComponents)
@@ -100,32 +97,4 @@ class GiveEnchantmentBookEntry(
             }
         }
     }
-
-    private fun toRoman(number: Int): String {
-        var n = number
-        val romans = listOf(
-            1000 to "M",
-            900 to "CM",
-            500 to "D",
-            400 to "CD",
-            100 to "C",
-            90 to "XC",
-            50 to "L",
-            40 to "XL",
-            10 to "X",
-            9 to "IX",
-            5 to "V",
-            4 to "IV",
-            1 to "I",
-        )
-        val sb = StringBuilder()
-        for ((value, symbol) in romans) {
-            while (n >= value) {
-                sb.append(symbol)
-                n -= value
-            }
-        }
-        return sb.toString()
-    }
 }
-

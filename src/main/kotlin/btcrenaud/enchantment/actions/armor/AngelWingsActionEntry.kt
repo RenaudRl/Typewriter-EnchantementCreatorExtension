@@ -1,6 +1,5 @@
 package btcrenaud.enchantment.actions.armor
 
-import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
 import com.typewritermc.core.extension.annotations.Help
@@ -15,7 +14,7 @@ import org.bukkit.event.entity.EntityDamageEvent
 @Entry(
     name = "angel_wings_action",
     description = "Reduces or completely negates fall damage",
-    color = Colors.GRAY,
+    color = "#9E9E9E",
     icon = "mdi:feather"
 )
 class AngelWingsActionEntry(
@@ -37,12 +36,13 @@ class AngelWingsActionEntry(
             } else {
                 event.damage *= damageMultiplier
             }
-            com.typewritermc.engine.paper.utils.particles.ParticleRenderer.render(
-                player.world,
+            player.world.spawnParticle(
+                org.bukkit.Particle.CLOUD,
                 player.location,
-                "CLOUD",
                 10,
-                org.bukkit.util.Vector(0.3, 0.0, 0.3),
+                0.3,
+                0.0,
+                0.3,
                 0.05
             )
         }

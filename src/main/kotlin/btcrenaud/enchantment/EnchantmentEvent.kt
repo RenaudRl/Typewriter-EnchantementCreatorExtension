@@ -18,5 +18,8 @@ enum class EnchantmentEvent {
     ITEM_DAMAGE,       // When an item takes damage (e.g., durability loss)
     FALL_DAMAGE,       // When player takes fall damage
     ENVIRONMENTAL_DAMAGE, // Any non-entity damage (fire, lava, kinetic)
-    PLAYER_MOVE        // When player moves (throttled)
+    PLAYER_MOVE,       // When player moves (throttled)
+    SHIELD_BLOCK,      // When player blocks an attack with a shield
+    SNEAK,             // When player starts sneaking
+    SPRINT             // When player starts sprinting
 }

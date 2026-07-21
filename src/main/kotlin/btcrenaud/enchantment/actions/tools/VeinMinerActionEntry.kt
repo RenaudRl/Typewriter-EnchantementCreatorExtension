@@ -1,6 +1,5 @@
 package btcrenaud.enchantment.actions.tools
 
-import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
 import com.typewritermc.core.extension.annotations.Help
@@ -21,7 +20,7 @@ import org.bukkit.inventory.ItemStack
 @Entry(
     name = "vein_miner_action",
     description = "Mines a vein of connected identical ores",
-    color = Colors.BROWN,
+    color = "#8D6E63",
     icon = "mdi:graph"
 )
 class VeinMinerActionEntry(

@@ -42,6 +42,14 @@ class CustomEnchantmentDefinition(
     override val minimumCost: EnchantmentDefinition.Cost = EnchantmentDefinition.Cost(),
     @Help("Maximum cost when enchanting")
     override val maximumCost: EnchantmentDefinition.Cost = EnchantmentDefinition.Cost(),
+    @Help("Equipment slots the enchantment is active in (empty = armor + hands)")
+    override val activeSlots: List<EnchantSlot> = emptyList(),
+    @Help("Enchantments that cannot coexist with this one on the same item")
+    override val exclusiveWith: List<Ref<RegisteredEnchantment>> = emptyList(),
+    @Help("Chance (0-100%) for this enchantment to appear as a book in generated loot chests")
+    override val treasureChance: Int = 0,
+    @Help("Chance (0-100%) for librarian villagers to sell this enchantment instead of a vanilla book trade")
+    override val tradeChance: Int = 0,
     @Help("List of modular mechanics for this enchantment")
     val mechanics: List<EnchantmentMechanic> = emptyList()
 ) : ManifestEntry, RegisteredEnchantment

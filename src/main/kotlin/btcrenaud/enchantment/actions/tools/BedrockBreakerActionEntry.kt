@@ -1,6 +1,5 @@
 package btcrenaud.enchantment.actions.tools
 
-import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
 import com.typewritermc.core.extension.annotations.Help
@@ -21,7 +20,7 @@ import kotlin.random.Random
 @Entry(
     name = "bedrock_breaker_action",
     description = "Extremely rare chance to successfully mine Bedrock when left-clicking it",
-    color = Colors.BROWN,
+    color = "#8D6E63",
     icon = "mdi:anvil"
 )
 class BedrockBreakerActionEntry(

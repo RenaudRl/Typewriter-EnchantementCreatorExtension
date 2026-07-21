@@ -1,6 +1,5 @@
 package btcrenaud.enchantment.actions.combat
 
-import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
 import com.typewritermc.core.extension.annotations.Help
@@ -21,7 +20,7 @@ import org.bukkit.potion.PotionEffectType
 @Entry(
     name = "blindness_strike_action",
     description = "Blinds the target struck",
-    color = Colors.GRAY,
+    color = "#9E9E9E",
     icon = "mdi:eye-off"
 )
 class BlindnessStrikeActionEntry(

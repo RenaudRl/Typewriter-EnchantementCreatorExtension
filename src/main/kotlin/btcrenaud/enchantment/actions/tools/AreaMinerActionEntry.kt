@@ -1,6 +1,5 @@
 package btcrenaud.enchantment.actions.tools
 
-import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
 import com.typewritermc.core.extension.annotations.Help
@@ -20,7 +19,7 @@ import org.bukkit.inventory.ItemStack
 @Entry(
     name = "area_miner_action",
     description = "Mines blocks in a 3x3 area based on the block broken",
-    color = Colors.GRAY,
+    color = "#9E9E9E",
     icon = "mdi:grid"
 )
 class AreaMinerActionEntry(

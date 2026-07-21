@@ -1,6 +1,5 @@
 package btcrenaud.enchantment.actions.combat
 
-import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
 import com.typewritermc.core.extension.annotations.Help
@@ -21,7 +20,7 @@ import org.bukkit.potion.PotionEffectType
 @Entry(
     name = "silence_action",
     description = "Silences the target, applying severe mining fatigue and weakness to prevent them from fighting back effectively",
-    color = Colors.GRAY,
+    color = "#9E9E9E",
     icon = "mdi:volume-off"
 )
 class SilenceActionEntry(

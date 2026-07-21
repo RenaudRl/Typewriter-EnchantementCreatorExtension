@@ -1,5 +1,6 @@
 package btcrenaud.enchantment.actions.combat
 
+import btcrenaud.enchantment.BukkitEventContextKey
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
@@ -9,14 +10,11 @@ import com.typewritermc.engine.paper.entry.Modifier
 import com.typewritermc.engine.paper.entry.TriggerableEntry
 import com.typewritermc.engine.paper.entry.entries.ActionEntry
 import com.typewritermc.engine.paper.entry.entries.ActionTrigger
-import com.typewritermc.core.utils.launch
-import kotlinx.coroutines.Dispatchers
-import com.typewritermc.engine.paper.utils.Sync
-import org.bukkit.entity.LivingEntity
-import org.bukkit.event.Event
-import org.bukkit.event.entity.EntityDamageByEntityEvent
-import org.bukkit.scheduler.BukkitRunnable
 import com.typewritermc.engine.paper.plugin
+import org.bukkit.Material
+import org.bukkit.Particle
+import org.bukkit.entity.LivingEntity
+import org.bukkit.event.entity.EntityDamageByEntityEvent
 
 @Entry(
     name = "bleed_action",
@@ -35,41 +33,41 @@ class BleedActionEntry(
     @Help("Number of times the bleed ticks")
     val totalTicks: Int = 3,
     @Help("Delay in server ticks between each bleed tick")
-    val intervalTicks: Long = 20L
+    val intervalTicks: Long = 20L,
+    @Help("Amount of particles spawned on each bleed tick (0 disables them)")
+    val particleCount: Int = 10,
 ) : ActionEntry {
 
     override fun ActionTrigger.execute() {
-        val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
+        val event = context.get(BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
         val target = event.entity as? LivingEntity ?: return
+        val interval = intervalTicks.coerceAtLeast(1L)
 
-        Dispatchers.Sync.launch {
-            object : BukkitRunnable() {
-                var ticks = 0
-                override fun run() {
-                    if (target.isDead || !target.isValid || ticks >= totalTicks) {
-                        cancel()
-                        return
-                    }
+        // Tick on the target's scheduler so the damage is applied on the
+        // entity's owning region thread on Folia (main thread on Paper).
+        var elapsed = 0
+        target.scheduler.runAtFixedRate(plugin, { task ->
+            if (target.isDead || !target.isValid || elapsed >= totalTicks) {
+                task.cancel()
+                return@runAtFixedRate
+            }
 
-                    // On applique des dégâts purs pour simuler le saignement
-                    if (target.health - damagePerTick > 0) {
-                        target.health -= damagePerTick
-                    } else {
-                        target.health = 0.0
-                    }
-                    com.typewritermc.engine.paper.utils.particles.ParticleRenderer.render(
-                        target.world,
-                        target.location.add(0.0, 1.0, 0.0),
-                        "BLOCK",
-                        10,
-                        org.bukkit.util.Vector(0.4, 0.4, 0.4),
-                        0.0,
-                        org.bukkit.Material.REDSTONE_BLOCK.createBlockData()
-                    )
-                    
-                    ticks++
-                }
-            }.runTaskTimer(plugin as org.bukkit.plugin.Plugin, intervalTicks, intervalTicks)
-        }
+            // Raw health reduction so the bleed ignores armor, like a wound.
+            target.health = (target.health - damagePerTick).coerceAtLeast(0.0)
+            if (particleCount > 0) {
+                target.world.spawnParticle(
+                    Particle.BLOCK,
+                    target.location.add(0.0, 1.0, 0.0),
+                    particleCount,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.0,
+                    Material.REDSTONE_BLOCK.createBlockData()
+                )
+            }
+
+            elapsed++
+        }, null, interval, interval)
     }
 }

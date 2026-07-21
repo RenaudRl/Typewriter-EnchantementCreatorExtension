@@ -1,6 +1,5 @@
 package btcrenaud.enchantment.actions.tools
 
-import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
 import com.typewritermc.core.extension.annotations.Help
@@ -20,7 +19,7 @@ import kotlin.random.Random
 @Entry(
     name = "indestructible_action",
     description = "Has a chance to repair the tool instead of taking damage when mining",
-    color = Colors.GRAY,
+    color = "#9E9E9E",
     icon = "mdi:anvil"
 )
 class IndestructibleActionEntry(

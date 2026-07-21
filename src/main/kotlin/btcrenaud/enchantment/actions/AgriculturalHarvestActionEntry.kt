@@ -79,14 +79,15 @@ class AgriculturalHarvestActionEntry(
                 }
             }
 
-            // Client-side effects : afficher une seule particule ou effet au lieu de 9
-            com.typewritermc.engine.paper.utils.particles.ParticleRenderer.render(
-                player,
+            // Single grouped effect for the whole harvest, shown only to the player.
+            player.spawnParticle(
+                org.bukkit.Particle.COMPOSTER,
                 centerLoc,
-                org.bukkit.Particle.COMPOSTER.name,
                 15,
-                org.bukkit.util.Vector(radius.toDouble(), 0.5, radius.toDouble()),
-                0.1f
+                radius.toDouble(),
+                0.5,
+                radius.toDouble(),
+                0.1
             )
             player.playSound(centerLoc, org.bukkit.Sound.BLOCK_CROP_BREAK, 1f, 1f)
         }

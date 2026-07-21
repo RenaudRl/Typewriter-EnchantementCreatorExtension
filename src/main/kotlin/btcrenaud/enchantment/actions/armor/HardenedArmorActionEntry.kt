@@ -1,6 +1,5 @@
 package btcrenaud.enchantment.actions.armor
 
-import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
 import com.typewritermc.core.extension.annotations.Help
@@ -16,7 +15,7 @@ import kotlin.random.Random
 @Entry(
     name = "hardened_armor_action",
     description = "Has a chance to ignore durability loss",
-    color = Colors.BROWN,
+    color = "#8D6E63",
     icon = "mdi:anvil"
 )
 class HardenedArmorActionEntry(
