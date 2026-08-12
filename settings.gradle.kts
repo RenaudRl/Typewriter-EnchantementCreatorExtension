@@ -1,1 +1,1 @@
-﻿rootProject.name = 'EnchantmentCreatorExtension'
+rootProject.name = "EnchantmentCreatorExtension"

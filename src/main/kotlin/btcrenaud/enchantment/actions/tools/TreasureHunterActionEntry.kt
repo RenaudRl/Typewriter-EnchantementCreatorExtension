@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.tools
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -39,7 +40,7 @@ class TreasureHunterActionEntry(
         val type = event.block.type
         
         if (type == Material.DIRT || type == Material.STONE || type == Material.COBBLESTONE || type == Material.GRASS_BLOCK || type == Material.SAND || type == Material.GRAVEL) {
-            Dispatchers.Sync.launch {
+            EnchantmentSchedulers.runOnPlayer(player) {
                 if (Random.nextDouble() <= chance) {
                     player.world.dropItemNaturally(event.block.location, ItemStack(Material.EMERALD))
                     player.playSound(event.block.location, org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 1f, 2f)

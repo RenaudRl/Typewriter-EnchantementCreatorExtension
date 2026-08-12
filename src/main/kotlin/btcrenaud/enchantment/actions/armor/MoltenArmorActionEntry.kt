@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.armor
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -36,7 +37,7 @@ class MoltenArmorActionEntry(
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
         val attacker = event.damager as? LivingEntity ?: return
 
-        Dispatchers.Sync.launch {
+        EnchantmentSchedulers.runOnPlayer(player) {
             if (attacker.fireTicks < fireTicks) {
                 attacker.fireTicks = fireTicks
             }

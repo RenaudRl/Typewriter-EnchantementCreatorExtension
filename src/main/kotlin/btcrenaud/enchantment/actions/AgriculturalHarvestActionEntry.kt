@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -41,7 +42,7 @@ class AgriculturalHarvestActionEntry(
         val targetBlock = player.getTargetBlockExact(5) ?: return
         
         // Optimisation Folia : on s'assure d'exécuter la modification du monde en Sync sur la région
-        Dispatchers.Sync.launch {
+        EnchantmentSchedulers.runOnPlayer(player) {
             val world = targetBlock.world
             val centerLoc = targetBlock.location
             val itemsToDrop = mutableMapOf<Material, Int>()

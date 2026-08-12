@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.armor
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -37,11 +38,13 @@ class DeflectActionEntry(
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
         val projectile = event.damager as? Projectile ?: return
 
-        Dispatchers.Sync.launch {
-            if (Random.nextDouble() <= deflectChance) {
-                event.isCancelled = true
+        if (Random.nextDouble() <= deflectChance) {
+            event.isCancelled = true
+            EnchantmentSchedulers.runOnEntity(projectile) {
                 projectile.velocity = projectile.velocity.multiply(-1.5)
                 projectile.shooter = player // Le joueur devient le tireur officiel
+            }
+            EnchantmentSchedulers.runOnPlayer(player) {
                 player.world.spawnParticle(org.bukkit.Particle.ENCHANTED_HIT, player.location.add(0.0, 1.0, 0.0), 10, 0.5, 0.5, 0.5, 0.1)
                 player.playSound(player.location, org.bukkit.Sound.ITEM_SHIELD_BLOCK, 1f, 1.5f)
             }

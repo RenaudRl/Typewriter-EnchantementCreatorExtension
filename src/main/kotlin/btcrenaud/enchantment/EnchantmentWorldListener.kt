@@ -38,13 +38,12 @@ object EnchantmentWorldListener : Initializable, Listener {
 
     @EventHandler(ignoreCancelled = true)
     fun onLootGenerate(event: LootGenerateEvent) {
-        for (def in EnchantmentManager.definitions()) {
-            if (def.treasureChance <= 0) continue
-            if (Random.nextInt(100) >= def.treasureChance.coerceAtMost(100)) continue
-            val level = Random.nextInt(def.maxLevel.coerceAtLeast(1)) + 1
-            val book = EnchantmentManager.buildBook(def, level) ?: continue
-            event.loot.add(book)
-        }
+        val def = EnchantmentManager.definitions()
+            .filter { Random.nextInt(100) < EnchantmentRuntime.clampChance(it.treasureChance) }
+            .weightedBy { it.normalizedWeight() }
+            ?: return
+        val level = Random.nextInt(def.normalizedMaxLevel()) + 1
+        EnchantmentManager.buildBook(def, level)?.let(event.loot::add)
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -53,12 +52,12 @@ object EnchantmentWorldListener : Initializable, Listener {
         if (villager.profession != Villager.Profession.LIBRARIAN) return
         if (event.recipe.result.type != Material.ENCHANTED_BOOK) return
 
-        val candidates = EnchantmentManager.definitions().filter { it.tradeChance > 0 }
-        if (candidates.isEmpty()) return
-        val def = candidates.random()
-        if (Random.nextInt(100) >= def.tradeChance.coerceAtMost(100)) return
+        val def = EnchantmentManager.definitions()
+            .filter { Random.nextInt(100) < EnchantmentRuntime.clampChance(it.tradeChance) }
+            .weightedBy { it.normalizedWeight() }
+            ?: return
 
-        val level = Random.nextInt(def.maxLevel.coerceAtLeast(1)) + 1
+        val level = Random.nextInt(def.normalizedMaxLevel()) + 1
         val book = EnchantmentManager.buildBook(def, level) ?: return
 
         val price = (TRADE_BASE_PRICE + TRADE_PRICE_PER_LEVEL * level).coerceAtMost(64)
@@ -66,5 +65,17 @@ object EnchantmentWorldListener : Initializable, Listener {
         recipe.addIngredient(ItemStack(Material.EMERALD, price))
         recipe.addIngredient(ItemStack(Material.BOOK))
         event.recipe = recipe
+    }
+
+    private fun <T> Iterable<T>.weightedBy(weight: (T) -> Int): T? {
+        val entries = mapNotNull { value -> weight(value).takeIf { it > 0 }?.let { value to it } }
+        val total = entries.sumOf { it.second }
+        if (total <= 0) return null
+        var cursor = Random.nextInt(total)
+        for ((value, entryWeight) in entries) {
+            cursor -= entryWeight
+            if (cursor < 0) return value
+        }
+        return entries.last().first
     }
 }

@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.special
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -35,7 +36,7 @@ class AquaticSpeedActionEntry(
     override fun ActionTrigger.execute() {
         val event = context.get(BukkitEventContextKey) as? PlayerMoveEvent ?: return
         
-        Dispatchers.Sync.launch {
+        EnchantmentSchedulers.runOnPlayer(player) {
             if (player.location.block.type == Material.WATER) {
                 player.addPotionEffect(PotionEffect(PotionEffectType.DOLPHINS_GRACE, 40, 1, false, false, false))
             }

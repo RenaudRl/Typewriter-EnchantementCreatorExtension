@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.armor
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -41,7 +42,7 @@ class ImplosionArmorActionEntry(
 
         // We check health minus finalDamage to predict if they will drop below the threshold
         if (player.health - event.finalDamage <= healthThreshold && player.health > healthThreshold) {
-            Dispatchers.Sync.launch {
+            EnchantmentSchedulers.runOnPlayer(player) {
                 val enemies = player.getNearbyEntities(radius, radius, radius)
                     .filterIsInstance<LivingEntity>()
                     .filter { it != player && !it.isDead }

@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.special
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -35,7 +36,7 @@ class FeederActionEntry(
     override fun ActionTrigger.execute() {
         val event = context.get(BukkitEventContextKey) as? PlayerMoveEvent ?: return
         
-        Dispatchers.Sync.launch {
+        EnchantmentSchedulers.runOnPlayer(player) {
             if (player.foodLevel < 20 && Random.nextDouble() <= chance) {
                 player.foodLevel = (player.foodLevel + 1).coerceAtMost(20)
                 player.saturation = (player.saturation + 0.5f).coerceAtMost(player.foodLevel.toFloat())

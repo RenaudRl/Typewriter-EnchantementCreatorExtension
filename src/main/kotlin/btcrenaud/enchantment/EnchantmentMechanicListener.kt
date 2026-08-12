@@ -34,36 +34,30 @@ object EnchantmentMechanicListener : Initializable, Listener {
     }
 
     private fun processEvent(player: Player, eventType: EnchantmentEvent, bukkitEvent: org.bukkit.event.Event) {
-        val playerActiveSet = EnchantmentManager.active[player.uniqueId] ?: return
-
-        val customDefs = playerActiveSet.filterIsInstance<CustomEnchantmentDefinition>()
+        val customDefs = EnchantmentManager.definitions()
+            .asSequence()
+            .filterIsInstance<CustomEnchantmentDefinition>()
+            .toList()
         if (customDefs.isEmpty()) return
 
-        val equipment = buildList {
-            add(player.inventory.itemInMainHand)
-            add(player.inventory.itemInOffHand)
-            addAll(player.inventory.armorContents)
-        }
-
-        val ctx = context {
-            put(BukkitEventContextKey, bukkitEvent)
-        }
-
         for (def in customDefs) {
-            val enchantment = EnchantmentManager.getEnchantment(def) ?: continue
-            val level = equipment.filterNotNull()
-                .filter { it.type in def.supportedItems }
-                .maxOfOrNull { it.getEnchantmentLevel(enchantment) } ?: 0
-
+            val match = EnchantmentManager.activeEquipment(player, def)
+            val level = match.level
             if (level <= 0) continue
 
             for (mechanic in def.mechanics) {
                 if (mechanic.event != eventType) continue
-                if (mechanic.runOnLevel > 0 && mechanic.runOnLevel != level) continue
-                if (mechanic.chance < 100 && Random.nextInt(100) >= mechanic.chance) continue
+                if (!EnchantmentRuntime.matchesLevel(mechanic.levelMode, mechanic.runOnLevel, level)) continue
+                if (Random.nextInt(100) >= EnchantmentRuntime.clampChance(mechanic.chance)) continue
+                val ctx = context {
+                    put(BukkitEventContextKey, bukkitEvent)
+                    put(EnchantmentLevelContextKey, level)
+                    match.slot?.let { put(EnchantmentSlotContextKey, it) }
+                    put(EnchantmentLevelModeContextKey, mechanic.levelMode)
+                }
                 if (!mechanic.criteria.matches(player, ctx)) continue
 
-                mechanic.actions.triggerEntriesFor(player, ctx)
+                mechanic.actions.triggerEnchantmentActions(player, ctx, mechanic.eventPhase)
                 mechanic.clientSideEffects.triggerEntriesFor(player, ctx)
             }
         }

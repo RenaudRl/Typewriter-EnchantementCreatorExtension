@@ -1,56 +1,26 @@
-# EnchantmentCreator Extension
+# TypeWriter-EnchantmentCreator
 
-![Java Version](https://img.shields.io/badge/Java-21-orange)
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
-![Target](https://img.shields.io/badge/Target-Paper%20/%20Folia%20/%20BTC--CORE-blue)
+Extension Typewriter pour créer des enchantements vanilla ou entièrement
+custom, avec mécaniques modulaires, slots actifs, niveaux, loot, échanges et
+actions compatibles avec le moteur Typewriter.
 
-**EnchantmentCreator Extension** is a custom content module for **TypeWriter**, engineered for **BTC Studio** infrastructure. It enables the creation of complex enchantments with custom triggers, criteria, and cooldowns.
+## Compatibilité de l’artefact public
 
----
+| Élément | Cible |
+| --- | --- |
+| Moteur | Typewriter officiel |
+| Serveur | Paper 1.21.x |
+| Runtime | Java 21 minimum/garanti |
+| Compilation | JDK 25 autorisé, bytecode Java 21 |
+| Dépendance | BasicExtension officiel |
+| Folia/BTC-CORE/BTC Velocity | Hors périmètre de cet artefact |
 
-## 🚀 Key Features
+La variante BTC custom se trouve dans le dépôt BORNTOCRAFT-Typewriter. Elle
+utilise les APIs BTC-CORE/BTC Velocity, Java 25 et les schedulers régionaux.
+Les deux variantes partagent le même modèle de données Typewriter ; leurs
+adapters de plateforme restent séparés afin d’éviter toute dépendance BTC dans
+l’extension publique.
 
-### ✨ Custom Enchantments
-- **Complex Triggers**: Define enchantments that react to specific game events (triggers).
-- **Criteria System**: Set detailed conditions for when enchantments should activate.
+Les clés d’enchantement sont désormais basées sur `id`. L’ancien `name` reste
+chargé comme alias afin de préserver les pages et objets existants.
 
-### ⏱️ Mechanics Control
-- **Cooldown Management**: Built-in cooldown systems for balanced gameplay.
-- **High Customizability**: Extensive options to tailor enchantments to your server's needs.
-
----
-
-## ⚙️ Configuration
-
-EnchantmentCreator Extension configuration is managed via TypeWriter's manifest system.
-
-## 🛠 Building & Deployment
-
-Requires **Java 21**.
-
-```bash
-# Clone the repository
-git clone https://github.com/RenaudRl/EnchantmentCreatorExtension.git
-cd EnchantmentCreatorExtension
-
-# Build the project
-./gradlew clean build
-```
-
-### Artifact Locations:
-- `build/libs/EnchantmentCreator-[Version].jar`
-
----
-
-## 🤝 Credits & Inspiration
-- **[TypeWriter](https://github.com/gabber235/Typewriter)** - The engine this extension is built for.
-- **[BTC Studio](https://github.com/RenaudRl)** - Maintenance and specialized optimizations.
-
----
-
-## 📜 License
-Licensed under the **MIT License**.
-
-## Documentation
-
-Full documentation available at [BTC Studio Docs](https://docs.borntocraftstudio.net/extensions/free/enchantmentcreator/).

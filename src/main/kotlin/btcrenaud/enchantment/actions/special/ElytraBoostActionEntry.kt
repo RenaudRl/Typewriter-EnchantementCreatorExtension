@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.special
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
@@ -35,7 +36,7 @@ class ElytraBoostActionEntry(
         val event = context.get(BukkitEventContextKey) as? PlayerInteractEvent ?: return
         
         if (player.isGliding && (event.action == Action.RIGHT_CLICK_AIR || event.action == Action.RIGHT_CLICK_BLOCK)) {
-            Dispatchers.Sync.launch {
+            EnchantmentSchedulers.runOnPlayer(player) {
                 val dir = player.location.direction.normalize()
                 player.velocity = player.velocity.add(dir.multiply(boostMultiplier))
                 player.world.spawnParticle(org.bukkit.Particle.FIREWORK, player.location, 10, 0.2, 0.2, 0.2, 0.1)

@@ -1,18 +1,19 @@
-plugins {
+﻿plugins {
     kotlin("jvm") version "2.3.20"
     id("com.typewritermc.module-plugin") version "2.1.0"
 }
 
 group = "btcrenaud"
-version = "0.0.7"
+version = "0.8"
 
 repositories {
-    mavenLocal()
 }
 
 dependencies {
     implementation("com.typewritermc:BasicExtension:0.9.0")
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
+    testImplementation(kotlin("test"))
+    testRuntimeOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
 }
 
 typewriter {
@@ -35,5 +36,9 @@ typewriter {
 
 kotlin {
     jvmToolchain(21)
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 

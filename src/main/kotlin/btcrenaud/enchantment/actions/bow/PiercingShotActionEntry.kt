@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.bow
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -36,16 +37,15 @@ class PiercingShotActionEntry(
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
         val target = event.entity as? LivingEntity ?: return
 
-        Dispatchers.Sync.launch {
-            val amount = event.damage * damageBypassPercentage
+        val amount = event.damage * damageBypassPercentage
+        event.damage -= amount
+        EnchantmentSchedulers.runOnEntity(target) {
             // Deal true damage by bypassing absorption or armor (we just subtract health safely)
             if (target.health - amount > 0) {
                 target.health -= amount
             } else {
                 target.health = 0.0
             }
-            // Reduce the actual event damage to compensate
-            event.damage -= amount
             target.world.spawnParticle(org.bukkit.Particle.ENCHANTED_HIT, target.eyeLocation, 10, 0.3, 0.3, 0.3, 0.1)
         }
     }

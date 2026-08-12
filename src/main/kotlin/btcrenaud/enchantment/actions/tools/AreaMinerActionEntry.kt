@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.tools
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
@@ -42,7 +43,7 @@ class AreaMinerActionEntry(
         val center = event.block
         val item: ItemStack = player.inventory.itemInMainHand
         
-        Dispatchers.Sync.launch {
+        EnchantmentSchedulers.runOnPlayer(player) {
             for (x in -1..1) {
                 for (y in -1..1) {
                     for (z in -1..1) {

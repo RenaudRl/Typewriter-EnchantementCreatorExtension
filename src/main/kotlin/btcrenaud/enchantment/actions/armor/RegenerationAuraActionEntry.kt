@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.armor
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -38,7 +39,7 @@ class RegenerationAuraActionEntry(
     override fun ActionTrigger.execute() {
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
 
-        Dispatchers.Sync.launch {
+        EnchantmentSchedulers.runOnPlayer(player) {
             player.addPotionEffect(PotionEffect(PotionEffectType.REGENERATION, durationTicks, amplifier))
         }
     }

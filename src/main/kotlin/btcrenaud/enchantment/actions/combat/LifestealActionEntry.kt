@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.combat
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -35,7 +36,7 @@ class LifestealActionEntry(
     override fun ActionTrigger.execute() {
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
 
-        Dispatchers.Sync.launch {
+        EnchantmentSchedulers.runOnPlayer(player) {
             val amount = event.finalDamage * healPercentage
             val maxHealth = player.getAttribute(Attribute.MAX_HEALTH)?.value ?: 20.0
             

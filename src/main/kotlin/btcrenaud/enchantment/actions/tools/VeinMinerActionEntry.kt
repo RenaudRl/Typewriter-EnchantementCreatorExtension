@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.tools
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
@@ -40,7 +41,7 @@ class VeinMinerActionEntry(
         
         if (!originType.name.contains("ORE")) return
 
-        Dispatchers.Sync.launch {
+        EnchantmentSchedulers.runOnPlayer(player) {
             val toBreak = mutableSetOf<Block>()
             val visited = mutableSetOf<Block>()
             toBreak.add(event.block)

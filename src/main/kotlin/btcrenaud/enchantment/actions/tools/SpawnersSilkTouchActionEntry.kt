@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.tools
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
@@ -38,9 +39,8 @@ class SpawnersSilkTouchActionEntry(
         
         if (block.type == Material.SPAWNER) {
             val spawner = block.state as? CreatureSpawner ?: return
-            
-            Dispatchers.Sync.launch {
-                event.expToDrop = 0
+            event.expToDrop = 0
+            EnchantmentSchedulers.runOnPlayer(player) {
                 val spawnerItem = ItemStack(Material.SPAWNER)
                 val meta = spawnerItem.itemMeta as BlockStateMeta
                 val metaState = meta.blockState as CreatureSpawner

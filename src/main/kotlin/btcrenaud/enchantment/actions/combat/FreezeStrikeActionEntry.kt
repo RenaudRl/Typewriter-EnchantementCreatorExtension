@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.combat
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -40,7 +41,7 @@ class FreezeStrikeActionEntry(
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
         val target = event.entity as? LivingEntity ?: return
 
-        Dispatchers.Sync.launch {
+        EnchantmentSchedulers.runOnEntity(target) {
             target.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, durationTicks, 1))
             // Only add visual freeze ticks if they aren't already frozen heavier
             if (target.freezeTicks < visualFreezeTicks) {

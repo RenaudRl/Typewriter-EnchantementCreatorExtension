@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.combat
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -33,7 +34,7 @@ class DisarmActionEntry(
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
         val target = event.entity as? Player ?: return
 
-        Dispatchers.Sync.launch {
+        EnchantmentSchedulers.runOnPlayer(player) {
             val itemInHand = target.inventory.itemInMainHand
             if (!itemInHand.type.isAir) {
                 val droppedItem = target.world.dropItemNaturally(target.location, itemInHand)

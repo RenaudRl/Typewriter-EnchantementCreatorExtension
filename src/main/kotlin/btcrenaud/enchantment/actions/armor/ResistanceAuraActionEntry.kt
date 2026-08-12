@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.armor
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
@@ -37,7 +38,7 @@ class ResistanceAuraActionEntry(
     override fun ActionTrigger.execute() {
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
 
-        Dispatchers.Sync.launch {
+        EnchantmentSchedulers.runOnPlayer(player) {
             player.addPotionEffect(PotionEffect(PotionEffectType.RESISTANCE, durationTicks, amplifier))
         }
     }

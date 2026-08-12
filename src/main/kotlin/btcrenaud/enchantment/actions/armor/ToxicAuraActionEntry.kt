@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.armor
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -44,7 +45,7 @@ class ToxicAuraActionEntry(
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
 
         if (event.finalDamage >= minimumDamageThreshold) {
-            Dispatchers.Sync.launch {
+            EnchantmentSchedulers.runOnPlayer(player) {
                 val enemies = player.getNearbyEntities(radius, radius, radius)
                     .filterIsInstance<LivingEntity>()
                     .filter { it != player && !it.isDead }

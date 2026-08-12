@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.combat
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -40,7 +41,7 @@ class VampiricAuraActionEntry(
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
         val target = event.entity as? LivingEntity ?: return
 
-        Dispatchers.Sync.launch {
+        EnchantmentSchedulers.runOnPlayer(player) {
             // Check if the attack was lethal
             if (target.health - event.finalDamage <= 0) {
                 val allies = target.getNearbyEntities(radius, radius, radius)

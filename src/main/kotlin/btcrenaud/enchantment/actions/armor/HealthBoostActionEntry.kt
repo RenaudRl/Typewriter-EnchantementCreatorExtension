@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.armor
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -35,7 +36,7 @@ class HealthBoostActionEntry(
     override fun ActionTrigger.execute() {
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? com.destroystokyo.paper.event.player.PlayerArmorChangeEvent ?: return
 
-        Dispatchers.Sync.launch {
+        EnchantmentSchedulers.runOnPlayer(player) {
             // Check if equipping or unequipping
             if (!event.newItem.type.isAir && event.oldItem.type != event.newItem.type) {
                 // To avoid stacking permanently and since we do not natively have AttributeModifier removal via engine yet,

@@ -4,6 +4,9 @@ import org.bukkit.event.Event
 import com.typewritermc.core.interaction.GlobalContextKey
 
 object BukkitEventContextKey : GlobalContextKey<Event>(Event::class)
+object EnchantmentLevelContextKey : GlobalContextKey<Int>(Int::class)
+object EnchantmentSlotContextKey : GlobalContextKey<EnchantSlot>(EnchantSlot::class)
+object EnchantmentLevelModeContextKey : GlobalContextKey<EnchantmentLevelMode>(EnchantmentLevelMode::class)
 
 enum class EnchantmentEvent {
     PLAYER_ATTACK,     // When player hits an entity

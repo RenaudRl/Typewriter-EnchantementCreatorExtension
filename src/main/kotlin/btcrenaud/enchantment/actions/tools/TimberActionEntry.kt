@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.tools
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -41,7 +42,7 @@ class TimberActionEntry(
         
         if (!originType.name.contains("LOG") && !originType.name.contains("STEM")) return
 
-        Dispatchers.Sync.launch {
+        EnchantmentSchedulers.runOnPlayer(player) {
             val toBreak = mutableSetOf<Block>()
             val visited = mutableSetOf<Block>()
             toBreak.add(event.block)

@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.armor
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
@@ -34,9 +35,9 @@ class EvasionActionEntry(
     override fun ActionTrigger.execute() {
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
 
-        Dispatchers.Sync.launch {
-            if (Random.nextDouble() <= dodgeChance) {
-                event.isCancelled = true
+        if (Random.nextDouble() <= dodgeChance) {
+            event.isCancelled = true
+            EnchantmentSchedulers.runOnPlayer(player) {
                 player.world.spawnParticle(org.bukkit.Particle.CLOUD, player.location.add(0.0, 1.0, 0.0), 20, 0.5, 0.5, 0.5, 0.1)
                 player.playSound(player.location, org.bukkit.Sound.ENTITY_ENDER_DRAGON_FLAP, 1f, 1.5f)
             }

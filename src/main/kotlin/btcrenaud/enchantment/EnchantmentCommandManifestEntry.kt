@@ -13,6 +13,7 @@ import com.typewritermc.engine.paper.command.dsl.withPermission
 import com.typewritermc.engine.paper.command.dsl.word
 import com.typewritermc.engine.paper.entry.ManifestEntry
 import com.typewritermc.engine.paper.entry.entries.CustomCommandEntry
+import com.typewritermc.engine.paper.plugin
 import com.typewritermc.engine.paper.utils.asMini
 import com.typewritermc.engine.paper.utils.server
 import io.papermc.paper.command.brigadier.CommandSourceStack
@@ -69,20 +70,23 @@ class EnchantmentCommandManifestEntry(
             sender.sendMessage(enchantmentNotFound.replace("{enchant}", enchantName).asMini())
             return
         }
-        val book = EnchantmentManager.buildBook(def, level)
-        if (book == null) {
-            sender.sendMessage(enchantmentNotFound.replace("{enchant}", enchantName).asMini())
-            return
-        }
-        val leftover = target.inventory.addItem(book)
-        leftover.values.forEach { target.world.dropItemNaturally(target.location, it) }
-        sender.sendMessage(
-            bookGiven
-                .replace("{player}", target.name)
-                .replace("{enchant}", def.displayName.ifBlank { def.name })
-                .replace("{level}", level.toString())
-                .asMini()
-        )
+        val safeLevel = EnchantmentRuntime.clampLevel(level, def.normalizedMaxLevel())
+        target.scheduler.run(plugin, serverTask@{ _ ->
+            val book = EnchantmentManager.buildBook(def, safeLevel)
+            if (book == null) {
+                sender.sendMessage(enchantmentNotFound.replace("{enchant}", enchantName).asMini())
+                return@serverTask
+            }
+            val leftover = target.inventory.addItem(book)
+            leftover.values.forEach { target.world.dropItemNaturally(target.location, it) }
+            sender.sendMessage(
+                bookGiven
+                    .replace("{player}", target.name)
+                    .replace("{enchant}", def.displayName.ifBlank { def.name })
+                    .replace("{level}", safeLevel.toString())
+                    .asMini()
+            )
+        }, null)
     }
 
     private fun findDefinition(enchantName: String): RegisteredEnchantment? {

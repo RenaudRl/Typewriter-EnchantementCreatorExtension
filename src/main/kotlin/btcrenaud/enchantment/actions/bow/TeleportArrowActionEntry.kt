@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.bow
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -33,7 +34,7 @@ class TeleportArrowActionEntry(
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? ProjectileHitEvent ?: return
         val projectile = event.entity
 
-        Dispatchers.Sync.launch {
+        EnchantmentSchedulers.runOnPlayer(player) {
             val loc = projectile.location
             loc.yaw = player.location.yaw
             loc.pitch = player.location.pitch

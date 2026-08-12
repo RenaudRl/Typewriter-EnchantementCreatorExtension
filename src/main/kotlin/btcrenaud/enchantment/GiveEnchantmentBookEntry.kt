@@ -11,9 +11,7 @@ import com.typewritermc.engine.paper.entry.TriggerableEntry
 import com.typewritermc.engine.paper.entry.entries.ActionEntry
 import com.typewritermc.engine.paper.entry.entries.ActionTrigger
 import com.typewritermc.engine.paper.logger
-import com.typewritermc.engine.paper.utils.Sync
-import com.typewritermc.core.utils.launch
-import kotlinx.coroutines.Dispatchers
+import com.typewritermc.engine.paper.plugin
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.EnchantmentStorageMeta
@@ -54,7 +52,9 @@ class GiveEnchantmentBookEntry(
         // All registry and inventory interactions must run on the server
         // thread to avoid touching unbound registry values. Build the book
         // there and hand it to the player in the same hop.
-        Dispatchers.Sync.launch {
+        player.scheduler.run(plugin, serverTask@{ _ ->
+            val safeLevel = EnchantmentRuntime.clampLevel(level, def.normalizedMaxLevel())
+            val safeAmount = amount.coerceIn(1, EnchantmentRuntime.MAX_COUNT)
             // Registration is idempotent: this covers definitions that were
             // published after the extension finished initializing.
             EnchantmentManager.ensureRegistered(def)
@@ -63,16 +63,16 @@ class GiveEnchantmentBookEntry(
                 logger.warning(
                     "Cannot give enchantment book for '${def.name}': the enchantment could not be registered."
                 )
-                return@launch
+                return@serverTask
             }
-            val item = ItemStack(Material.ENCHANTED_BOOK, amount)
-            val meta = item.itemMeta as? EnchantmentStorageMeta ?: return@launch
-            meta.addStoredEnchant(ench, level, true)
+            val item = ItemStack(Material.ENCHANTED_BOOK, safeAmount)
+            val meta = item.itemMeta as? EnchantmentStorageMeta ?: return@serverTask
+            meta.addStoredEnchant(ench, safeLevel, true)
             meta.addItemFlags(ItemFlag.HIDE_STORED_ENCHANTS)
             val placeholders = mapOf(
                 "{enchantment}" to def.displayName,
                 "{enchantment_lore}" to def.enchantmentLore.ifBlank { def.displayName },
-                "{level}" to toRoman(level)
+                "{level}" to toRoman(safeLevel)
             )
             val nameText = placeholders.entries.fold(bookName) { acc, (k, v) -> acc.replace(k, v) }
             meta.displayName(nameText.parsePlaceholders(player).asMini())
@@ -95,6 +95,6 @@ class GiveEnchantmentBookEntry(
             if (leftover.isNotEmpty()) {
                 leftover.values.forEach { player.world.dropItemNaturally(player.location, it) }
             }
-        }
+        }, null)
     }
 }

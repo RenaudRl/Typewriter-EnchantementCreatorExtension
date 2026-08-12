@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.special
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -31,8 +32,7 @@ class SoulboundActionEntry(
     override fun ActionTrigger.execute() {
         val event = context.get(BukkitEventContextKey) as? PlayerDeathEvent ?: return
         
-        Dispatchers.Sync.launch {
-            if (event.keepInventory) return@launch
+        if (event.keepInventory) return
             
             // To be precise, since it's hard to track the EXACT item during death in an entry without
             // passing the specific matched item instance, we'll iterate through drops and find items
@@ -63,7 +63,6 @@ class SoulboundActionEntry(
                 }
             }
             
-            event.itemsToKeep.addAll(savedItems)
-        }
+        event.itemsToKeep.addAll(savedItems)
     }
 }

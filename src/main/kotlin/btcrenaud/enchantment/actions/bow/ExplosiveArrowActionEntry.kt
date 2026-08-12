@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.bow
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -35,7 +36,7 @@ class ExplosiveArrowActionEntry(
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? ProjectileHitEvent ?: return
         val projectile = event.entity
 
-        Dispatchers.Sync.launch {
+        EnchantmentSchedulers.runOnEntity(projectile) {
             // Créer une explosion qui ne casse pas de blocs (false, false pour safeFoliasync)
             projectile.world.createExplosion(projectile.location, power, false, false)
             projectile.remove()

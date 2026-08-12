@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.bow
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -32,7 +33,7 @@ class LightningArrowActionEntry(
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
         val target = event.entity
 
-        Dispatchers.Sync.launch {
+        EnchantmentSchedulers.runOnEntity(target) {
             // Visual lightning, applies no fire or extra vanilla AoE damage, purely cosmetic/targeted
             target.world.strikeLightningEffect(target.location)
             // Add custom bonus damage here if desired

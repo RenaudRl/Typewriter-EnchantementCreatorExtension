@@ -25,7 +25,6 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.enchantment.PrepareItemEnchantEvent
-import org.bukkit.event.player.AsyncPlayerPreLoginEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import java.util.UUID
 import java.util.Locale
@@ -48,10 +47,13 @@ object EnchantmentManager : Initializable, Listener {
     internal val active = ConcurrentHashMap<UUID, MutableSet<RegisteredEnchantment>>()
     private val levelCache = ConcurrentHashMap<UUID, CachedLevels>()
     private val dirtyEquipment: MutableSet<UUID> = ConcurrentHashMap.newKeySet()
+    @Volatile
     private var vanillaBlacklist: Set<Enchantment> = emptySet()
     private var task: ScheduledTask? = null
     private var registry: Any? = null
+    private val activeLevels = ConcurrentHashMap<UUID, ConcurrentHashMap<RegisteredEnchantment, Int>>()
 
+    private data class EquippedItem(val slot: EnchantSlot, val item: org.bukkit.inventory.ItemStack)
     private data class CachedLevels(val levels: Map<RegisteredEnchantment, Int>, val computedAt: Long)
 
     override suspend fun initialize() {
@@ -134,7 +136,7 @@ object EnchantmentManager : Initializable, Listener {
         registry: WritableRegistry<Enchantment, EnchantmentRegistryEntry.Builder>
     ) {
         val access = RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT)
-        val keyNames = listOf(sanitize(def.name), sanitize(def.id)).distinct()
+        val keyNames = EnchantmentRuntime.registryKeyNames(def)
         for (keyName in keyNames) {
             val key = TypedKey.create(RegistryKey.ENCHANTMENT, "typewriter:$keyName")
             access.get(key)?.let {
@@ -152,8 +154,8 @@ object EnchantmentManager : Initializable, Listener {
                             )
                         )
                         .anvilCost(def.anvilCost)
-                        .maxLevel(def.maxLevel)
-                        .weight(def.weight)
+                        .maxLevel(def.normalizedMaxLevel())
+                        .weight(def.normalizedWeight())
                         .minimumCost(def.minimumCost.toEnchantmentCost())
                         .maximumCost(def.maximumCost.toEnchantmentCost())
                         .activeSlots(def.slotGroups())
@@ -170,7 +172,7 @@ object EnchantmentManager : Initializable, Listener {
     }
 
     private fun registerReflective(def: RegisteredEnchantment, registry: Any) {
-        val keyNames = listOf(sanitize(def.name), sanitize(def.id)).distinct()
+        val keyNames = EnchantmentRuntime.registryKeyNames(def)
         for (keyName in keyNames) {
             val key = TypedKey.create(RegistryKey.ENCHANTMENT, "typewriter:$keyName")
             try {
@@ -204,8 +206,8 @@ object EnchantmentManager : Initializable, Listener {
                             )
                         )
                         .anvilCost(def.anvilCost)
-                        .maxLevel(def.maxLevel)
-                        .weight(def.weight)
+                        .maxLevel(def.normalizedMaxLevel())
+                        .weight(def.normalizedWeight())
                         .minimumCost(def.minimumCost.toEnchantmentCost())
                         .maximumCost(def.maximumCost.toEnchantmentCost())
                         .activeSlots(def.slotGroups())
@@ -266,14 +268,18 @@ object EnchantmentManager : Initializable, Listener {
     }
 
     fun ensureRegistered(def: RegisteredEnchantment) {
-        val mainName = sanitize(def.name)
-        val keyMain = TypedKey.create(RegistryKey.ENCHANTMENT, "typewriter:$mainName")
+        val keyNames = EnchantmentRuntime.registryKeyNames(def)
+        if (keyNames.isEmpty()) {
+            plugin.logger.warning("Ignoring enchantment with no valid id or name: ${def.javaClass.simpleName}")
+            return
+        }
+        val canonicalName = keyNames.first()
+        val keyMain = TypedKey.create(RegistryKey.ENCHANTMENT, "typewriter:$canonicalName")
         val access = RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT)
         access.get(keyMain)?.let { existing ->
             enchantments[keyMain] = def to existing
             byDefinition.getOrPut(def) { ConcurrentHashMap.newKeySet() }.add(existing)
-            val legacyName = sanitize(def.id)
-            if (legacyName != mainName) {
+            keyNames.drop(1).forEach { legacyName ->
                 val legacyKey = TypedKey.create(RegistryKey.ENCHANTMENT, "typewriter:$legacyName")
                 access.get(legacyKey)?.let { e ->
                     enchantments[legacyKey] = def to e
@@ -297,8 +303,7 @@ object EnchantmentManager : Initializable, Listener {
             enchantments[keyMain] = def to main
             byDefinition.getOrPut(def) { ConcurrentHashMap.newKeySet() }.add(main)
         }
-        val legacyName = sanitize(def.id)
-        if (legacyName != mainName) {
+        keyNames.drop(1).forEach { legacyName ->
             val legacyKey = TypedKey.create(RegistryKey.ENCHANTMENT, "typewriter:$legacyName")
             access.get(legacyKey)?.let { e ->
                 enchantments[legacyKey] = def to e
@@ -319,22 +324,22 @@ object EnchantmentManager : Initializable, Listener {
 
     private fun tick() {
         val now = System.currentTimeMillis()
-        val ctx = context()
         val entries = byDefinition.map { it.key to it.value.toList() }
         if (entries.isEmpty()) return
         for (player in server.onlinePlayers) {
-            player.scheduler.run(plugin, { _ -> checkPlayer(player, now, ctx, entries) }, null)
+            player.scheduler.run(plugin, { _ -> checkPlayer(player, now, entries) }, null)
         }
     }
 
     private fun checkPlayer(
         player: Player,
         now: Long,
-        ctx: com.typewritermc.core.interaction.InteractionContext,
         entries: List<Pair<RegisteredEnchantment, List<Enchantment>>>
     ) {
         if (!player.isOnline) return
+        val ctx = context()
         val playerActive = active.getOrPut(player.uniqueId) { ConcurrentHashMap.newKeySet() }
+        val playerLevels = activeLevels.getOrPut(player.uniqueId) { ConcurrentHashMap() }
         val levels = equipmentLevels(player, now, entries)
         for ((def, _) in entries) {
             val level = levels[def] ?: 0
@@ -348,9 +353,11 @@ object EnchantmentManager : Initializable, Listener {
                             lastRun[player.uniqueId to def] = now
                         }
                         playerActive.add(def)
+                        playerLevels[def] = level
                     } else if (wasActive) {
                         def.inactiveTriggers.triggerEntriesFor(player, ctx)
                         playerActive.remove(def)
+                        playerLevels.remove(def)
                     }
                 } else {
                     if (level > 0 && def.criteria.matches(player, ctx)) {
@@ -358,16 +365,20 @@ object EnchantmentManager : Initializable, Listener {
                             def.activeTriggers.firstOrNull { it.level == level }?.triggers?.triggerEntriesFor(player, ctx)
                             playerActive.add(def)
                         }
+                        playerLevels[def] = level
                     } else if (wasActive) {
                         def.inactiveTriggers.triggerEntriesFor(player, ctx)
                         playerActive.remove(def)
+                        playerLevels.remove(def)
                     }
                 }
             } else if (def is CustomEnchantmentDefinition) {
                 if (level > 0) {
                     playerActive.add(def)
+                    playerLevels[def] = level
                 } else if (wasActive) {
                     playerActive.remove(def)
+                    playerLevels.remove(def)
                 }
             }
         }
@@ -388,15 +399,18 @@ object EnchantmentManager : Initializable, Listener {
         if (cached != null && !dirty && now - cached.computedAt < LEVEL_CACHE_TTL_MS) {
             return cached.levels
         }
-        val equipment = buildList {
-            add(player.inventory.itemInMainHand)
-            add(player.inventory.itemInOffHand)
-            addAll(player.inventory.armorContents.filterNotNull())
-        }
+        val equipment = equipment(player)
         val levels = entries.associate { (def, enchants) ->
             def to (equipment
-                .filter { it.type in def.supportedItems }
-                .maxOfOrNull { item -> enchants.maxOfOrNull { item.getEnchantmentLevel(it) } ?: 0 }
+                .filter { equipped ->
+                    equipped.item.type in def.supportedItems &&
+                        def.normalizedActiveSlots().any { configured ->
+                            EnchantmentRuntime.slotMatches(configured, equipped.slot)
+                        }
+                }
+                .maxOfOrNull { equipped ->
+                    enchants.maxOfOrNull { equipped.item.getEnchantmentLevel(it) } ?: 0
+                }
                 ?: 0)
         }
         levelCache[uuid] = CachedLevels(levels, now)
@@ -405,6 +419,16 @@ object EnchantmentManager : Initializable, Listener {
 
     private fun markDirty(uuid: UUID) {
         dirtyEquipment.add(uuid)
+    }
+
+    private fun equipment(player: Player): List<EquippedItem> = buildList {
+        add(EquippedItem(EnchantSlot.MAINHAND, player.inventory.itemInMainHand))
+        add(EquippedItem(EnchantSlot.OFFHAND, player.inventory.itemInOffHand))
+        val armor = player.inventory.armorContents
+        armor.getOrNull(3)?.let { add(EquippedItem(EnchantSlot.HEAD, it)) }
+        armor.getOrNull(2)?.let { add(EquippedItem(EnchantSlot.CHEST, it)) }
+        armor.getOrNull(1)?.let { add(EquippedItem(EnchantSlot.LEGS, it)) }
+        armor.getOrNull(0)?.let { add(EquippedItem(EnchantSlot.FEET, it)) }
     }
 
     @EventHandler
@@ -422,6 +446,16 @@ object EnchantmentManager : Initializable, Listener {
     }
 
     @EventHandler
+    private fun onInventoryClick(event: org.bukkit.event.inventory.InventoryClickEvent) {
+        (event.whoClicked as? Player)?.let { markDirty(it.uniqueId) }
+    }
+
+    @EventHandler
+    private fun onInventoryDrag(event: org.bukkit.event.inventory.InventoryDragEvent) {
+        (event.whoClicked as? Player)?.let { markDirty(it.uniqueId) }
+    }
+
+    @EventHandler
     private fun onItemPickup(event: org.bukkit.event.entity.EntityPickupItemEvent) {
         (event.entity as? Player)?.let { markDirty(it.uniqueId) }
     }
@@ -429,16 +463,46 @@ object EnchantmentManager : Initializable, Listener {
     @EventHandler
     private fun onItemDrop(event: org.bukkit.event.player.PlayerDropItemEvent) = markDirty(event.player.uniqueId)
 
-    private fun sanitize(input: String): String =
-        input.lowercase(Locale.ROOT)
-            .replace("\\s+".toRegex(), "_")
-            .replace("[^a-z0-9_./-]".toRegex(), "_")
+    @EventHandler
+    private fun onItemConsume(event: org.bukkit.event.player.PlayerItemConsumeEvent) = markDirty(event.player.uniqueId)
 
     private fun RegisteredEnchantment.slotGroups(): List<EquipmentSlotGroup> =
-        activeSlots.ifEmpty { listOf(EnchantSlot.ARMOR, EnchantSlot.HAND) }.map { it.group }
+        normalizedActiveSlots().map { it.group }
 
-    fun getEnchantment(def: RegisteredEnchantment): Enchantment? =
-        byDefinition[def]?.firstOrNull()
+    fun getEnchantment(def: RegisteredEnchantment): Enchantment? {
+        val access = RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT)
+        return EnchantmentRuntime.registryKeyNames(def)
+            .asSequence()
+            .map { TypedKey.create(RegistryKey.ENCHANTMENT, "typewriter:$it") }
+            .mapNotNull { key -> access.get(key) ?: enchantments[key]?.second }
+            .firstOrNull()
+            ?: byDefinition[def]?.firstOrNull()
+    }
+
+    internal fun activeLevel(player: Player, def: RegisteredEnchantment): Int =
+        activeLevels[player.uniqueId]?.get(def) ?: 0
+
+    internal data class ActiveEquipment(val level: Int, val slot: EnchantSlot?)
+
+    internal fun activeEquipment(player: Player, def: RegisteredEnchantment): ActiveEquipment {
+        val enchantmentsForDefinition = byDefinition[def].orEmpty()
+        val match = equipment(player)
+            .asSequence()
+            .filter { equipped ->
+                equipped.item.type in def.supportedItems &&
+                    def.normalizedActiveSlots().any { configured ->
+                        EnchantmentRuntime.slotMatches(configured, equipped.slot)
+                    }
+            }
+            .map { equipped ->
+                equipped to (enchantmentsForDefinition.maxOfOrNull { enchantment ->
+                    equipped.item.getEnchantmentLevel(enchantment)
+                } ?: 0)
+            }
+            .filter { (_, level) -> level > 0 }
+            .maxByOrNull { (_, level) -> level }
+        return ActiveEquipment(match?.second ?: 0, match?.first?.slot)
+    }
 
     /** All registered definitions, for world integration and commands. */
     fun definitions(): Set<RegisteredEnchantment> = byDefinition.keys
@@ -459,7 +523,7 @@ object EnchantmentManager : Initializable, Listener {
     fun buildBook(def: RegisteredEnchantment, level: Int): org.bukkit.inventory.ItemStack? {
         ensureRegistered(def)
         val ench = getEnchantment(def) ?: return null
-        val lvl = level.coerceIn(1, def.maxLevel.coerceAtLeast(1))
+        val lvl = EnchantmentRuntime.clampLevel(level, def.normalizedMaxLevel())
         val item = org.bukkit.inventory.ItemStack(org.bukkit.Material.ENCHANTED_BOOK)
         val meta = item.itemMeta as? org.bukkit.inventory.meta.EnchantmentStorageMeta ?: return null
         meta.addStoredEnchant(ench, lvl, true)
@@ -476,28 +540,10 @@ object EnchantmentManager : Initializable, Listener {
     private fun onQuit(event: PlayerQuitEvent) {
         val uuid = event.player.uniqueId
         active.remove(uuid)
+        activeLevels.remove(uuid)
         levelCache.remove(uuid)
         dirtyEquipment.remove(uuid)
         lastRun.keys.removeIf { it.first == uuid }
-    }
-
-    @EventHandler
-    private fun onAsyncPreLogin(@Suppress("UNUSED_PARAMETER") event: AsyncPlayerPreLoginEvent) {
-        val definitions = Query.find<EnchantmentDefinition>().toList()
-        val customDefinitions = Query.find<CustomEnchantmentDefinition>().toList()
-        // Registration must happen on the global region thread before any other
-        // plugin attempts to deserialize the joining player's inventory, so
-        // unknown enchantments never corrupt player data. Registration is
-        // idempotent: already-known definitions are simply re-linked.
-        runCatching {
-            Bukkit.getGlobalRegionScheduler().run(plugin) { _ ->
-                definitions.forEach { ensureRegistered(it) }
-                customDefinitions.forEach { ensureRegistered(it) }
-                reloadVanillaBlacklist()
-            }
-        }.onFailure {
-            plugin.logger.log(Level.SEVERE, "Failed to register enchantments during pre-login", it)
-        }
     }
 
     @EventHandler

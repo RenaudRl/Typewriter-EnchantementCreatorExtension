@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.tools
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -34,7 +35,7 @@ class OxygenateActionEntry(
     override fun ActionTrigger.execute() {
         val event = context.get(BukkitEventContextKey) as? BlockBreakEvent ?: return
         
-        Dispatchers.Sync.launch {
+        EnchantmentSchedulers.runOnPlayer(player) {
             if (player.remainingAir < player.maximumAir) {
                 player.remainingAir = (player.remainingAir + breathRestored).coerceAtMost(player.maximumAir)
                 player.world.spawnParticle(org.bukkit.Particle.BUBBLE_POP, player.eyeLocation, 5, 0.2, 0.2, 0.2, 0.05)

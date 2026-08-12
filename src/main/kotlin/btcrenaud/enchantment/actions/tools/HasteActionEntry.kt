@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.tools
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -39,7 +40,7 @@ class HasteActionEntry(
         // Technically an action trigger could be bound to BLOCK_BREAK.
         val event = context.get(BukkitEventContextKey) as? BlockBreakEvent ?: return
         
-        Dispatchers.Sync.launch {
+        EnchantmentSchedulers.runOnPlayer(player) {
             player.addPotionEffect(PotionEffect(PotionEffectType.HASTE, durationTicks, amplifier))
         }
     }

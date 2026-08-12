@@ -53,6 +53,15 @@ internal fun String.wrapMiniColor(text: String): Component {
     return "$open$text$close".asMini().decoration(TextDecoration.ITALIC, false)
 }
 
+internal fun RegisteredEnchantment.normalizedMaxLevel(): Int =
+    EnchantmentRuntime.clampMaxLevel(maxLevel)
+
+internal fun RegisteredEnchantment.normalizedWeight(): Int =
+    EnchantmentRuntime.clampWeight(weight)
+
+internal fun RegisteredEnchantment.normalizedActiveSlots(): List<EnchantSlot> =
+    activeSlots.ifEmpty { listOf(EnchantSlot.ARMOR, EnchantSlot.HAND) }
+
 /** Formats an enchantment level as roman numerals, like vanilla does. */
 internal fun toRoman(number: Int): String {
     var n = number

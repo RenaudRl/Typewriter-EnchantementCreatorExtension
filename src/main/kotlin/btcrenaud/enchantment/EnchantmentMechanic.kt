@@ -12,10 +12,14 @@ data class EnchantmentMechanic(
     val criteria: List<Criteria> = emptyList(),
     @Help("Actions executed when criteria are met")
     val actions: List<Ref<TriggerableEntry>> = emptyList(),
-    @Help("Client-side only effects (particles, sounds) executed via packets")
+    @Help("Visual effects associated with this mechanic. They must be implemented by a client-aware action.")
     val clientSideEffects: List<Ref<TriggerableEntry>> = emptyList(),
-    @Help("Level required to run this mechanic. 0 means all levels.")
+    @Help("Level threshold used by the selected level mode. 0 means all levels.")
     val runOnLevel: Int = 0,
+    @Help("How runOnLevel is compared with the active enchantment level")
+    val levelMode: EnchantmentLevelMode = EnchantmentLevelMode.EXACT,
+    @Help("Execute actions during the Bukkit event phase so they can modify or cancel that event")
+    val eventPhase: Boolean = true,
     @Help("Chance to trigger this mechanic (0-100%).")
     val chance: Int = 100
 )

@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.combat
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
@@ -39,7 +40,7 @@ class BlindnessStrikeActionEntry(
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
         val target = event.entity as? LivingEntity ?: return
 
-        Dispatchers.Sync.launch {
+        EnchantmentSchedulers.runOnEntity(target) {
             target.addPotionEffect(PotionEffect(PotionEffectType.BLINDNESS, durationTicks, amplifier))
         }
     }

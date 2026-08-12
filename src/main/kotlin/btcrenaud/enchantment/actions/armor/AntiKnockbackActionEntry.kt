@@ -1,4 +1,5 @@
 package btcrenaud.enchantment.actions.armor
+import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
@@ -35,8 +36,8 @@ class AntiKnockbackActionEntry(
     override fun ActionTrigger.execute() {
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? com.destroystokyo.paper.event.player.PlayerArmorChangeEvent ?: return
 
-        Dispatchers.Sync.launch {
-            val attr = player.getAttribute(Attribute.KNOCKBACK_RESISTANCE) ?: return@launch
+        EnchantmentSchedulers.runOnPlayer(player) {
+            val attr = player.getAttribute(Attribute.KNOCKBACK_RESISTANCE) ?: return@runOnPlayer
             
             // To be safe and clean, we remove old modifiers named by our custom action to avoid endless stacking
             attr.modifiers.filter { it.name == "typewriter_antikb" }.forEach { attr.removeModifier(it) }
