@@ -1,5 +1,4 @@
 package btcrenaud.enchantment.actions.bow
-import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
@@ -9,6 +8,10 @@ import com.typewritermc.engine.paper.entry.Modifier
 import com.typewritermc.engine.paper.entry.TriggerableEntry
 import com.typewritermc.engine.paper.entry.entries.ActionEntry
 import com.typewritermc.engine.paper.entry.entries.ActionTrigger
+import com.typewritermc.core.utils.launch
+import kotlinx.coroutines.Dispatchers
+import com.typewritermc.engine.paper.utils.Sync
+import kotlinx.coroutines.delay
 import org.bukkit.Material
 import org.bukkit.entity.LivingEntity
 import org.bukkit.event.Event
@@ -34,18 +37,21 @@ class WebArrowActionEntry(
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
         val target = event.entity as? LivingEntity ?: return
 
-        EnchantmentSchedulers.runOnEntity(target) {
+        Dispatchers.Sync.launch {
             val block = target.location.block
             if (block.type == Material.AIR || block.type == Material.CAVE_AIR || block.type == Material.WATER) {
                 val originalType = block.type
                 val originalData = block.blockData.clone()
-                
+
                 block.setType(Material.COBWEB, false)
 
                 // Schedule removal
-                EnchantmentSchedulers.runOnEntityLater(target, (durationMs + 49L) / 50L) {
-                    if (block.type == Material.COBWEB) {
-                        block.setBlockData(originalData, false)
+                Dispatchers.Default.launch {
+                    delay(durationMs)
+                    Dispatchers.Sync.launch {
+                        if (block.type == Material.COBWEB) {
+                            block.setBlockData(originalData, false)
+                        }
                     }
                 }
             }

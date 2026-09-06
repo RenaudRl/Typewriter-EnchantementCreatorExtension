@@ -1,5 +1,4 @@
 package btcrenaud.enchantment.actions.bow
-import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -37,7 +36,7 @@ class PushArrowActionEntry(
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
         val target = event.entity as? LivingEntity ?: return
 
-        EnchantmentSchedulers.runOnPlayer(player) {
+        Dispatchers.Sync.launch {
             val direction = target.location.toVector().subtract(player.location.toVector()).normalize()
             target.velocity = direction.multiply(strength).setY(strength * 0.3)
         }

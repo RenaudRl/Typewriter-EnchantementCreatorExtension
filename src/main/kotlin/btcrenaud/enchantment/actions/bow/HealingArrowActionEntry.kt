@@ -1,5 +1,4 @@
 package btcrenaud.enchantment.actions.bow
-import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -38,14 +37,14 @@ class HealingArrowActionEntry(
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
         val target = event.entity as? LivingEntity ?: return
 
-        // Cancel damage during the current Bukkit event; healing itself is
-        // scheduled on the target's region below.
-        event.damage = 0.0
-        event.isCancelled = true
-        EnchantmentSchedulers.runOnEntity(target) {
+        Dispatchers.Sync.launch {
+            // Cancel damage and heal instead
+            event.damage = 0.0
+            event.isCancelled = true
+
             val maxHealth = target.getAttribute(Attribute.MAX_HEALTH)?.value ?: 20.0
             target.health = (target.health + healAmount).coerceAtMost(maxHealth)
-            
+
             target.world.spawnParticle(org.bukkit.Particle.HEART, target.eyeLocation, 5, 0.5, 0.5, 0.5, 0.1)
         }
     }

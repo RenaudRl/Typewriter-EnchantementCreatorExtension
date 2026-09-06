@@ -1,5 +1,4 @@
 package btcrenaud.enchantment.actions.tools
-import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -36,9 +35,9 @@ class GreenThumbActionEntry(
 
     override fun ActionTrigger.execute() {
         val event = context.get(BukkitEventContextKey) as? PlayerInteractEvent ?: return
-        
+
         if (event.action == Action.RIGHT_CLICK_BLOCK || event.action == Action.RIGHT_CLICK_AIR) {
-            EnchantmentSchedulers.runOnPlayer(player) {
+            Dispatchers.Sync.launch {
                 val loc = player.location
                 for (x in -radius..radius) {
                     for (y in -2..2) {

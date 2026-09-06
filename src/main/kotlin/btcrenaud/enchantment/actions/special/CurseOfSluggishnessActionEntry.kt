@@ -1,5 +1,4 @@
 package btcrenaud.enchantment.actions.special
-import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -36,8 +35,8 @@ class CurseOfSluggishnessActionEntry(
 
     override fun ActionTrigger.execute() {
         val event = context.get(BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
-        
-        EnchantmentSchedulers.runOnPlayer(player) {
+
+        Dispatchers.Sync.launch {
             player.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, durationTicks, 0))
             player.addPotionEffect(PotionEffect(PotionEffectType.WEAKNESS, durationTicks, 0))
         }

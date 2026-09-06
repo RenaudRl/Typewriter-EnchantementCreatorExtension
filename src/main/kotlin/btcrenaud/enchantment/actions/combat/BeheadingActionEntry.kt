@@ -1,5 +1,4 @@
 package btcrenaud.enchantment.actions.combat
-import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
@@ -46,7 +45,7 @@ class BeheadingActionEntry(
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
         val target = event.entity as? LivingEntity ?: return
 
-        EnchantmentSchedulers.runOnPlayer(player) {
+        Dispatchers.Sync.launch {
             if (target.health - event.finalDamage <= 0 && Random.nextDouble() <= dropChance) {
                 var headItem: ItemStack? = null
 

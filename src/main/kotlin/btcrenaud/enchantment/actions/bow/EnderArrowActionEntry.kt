@@ -1,5 +1,4 @@
 package btcrenaud.enchantment.actions.bow
-import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -40,9 +39,9 @@ class EnderArrowActionEntry(
         val target = event.entity as? LivingEntity ?: return
 
         if (target is Enderman || target is Shulker || target is EnderDragon || target is Endermite) {
-            EnchantmentSchedulers.runOnEntity(target) {
+            Dispatchers.Sync.launch {
                 target.world.spawnParticle(org.bukkit.Particle.PORTAL, target.location, 30, 0.5, 0.5, 0.5, 0.1)
-                
+
                 if (target.health - bonusDamage > 0) {
                     target.health -= bonusDamage
                 } else {

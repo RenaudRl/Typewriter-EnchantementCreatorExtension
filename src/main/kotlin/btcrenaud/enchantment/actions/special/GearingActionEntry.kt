@@ -1,5 +1,4 @@
 package btcrenaud.enchantment.actions.special
-import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -39,8 +38,8 @@ class GearingActionEntry(
     override fun ActionTrigger.execute() {
         // Assume context is on defend
         val event = context.get(BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
-        
-        EnchantmentSchedulers.runOnPlayer(player) {
+
+        Dispatchers.Sync.launch {
             player.addPotionEffect(PotionEffect(PotionEffectType.SPEED, durationTicks, amplifier))
         }
     }

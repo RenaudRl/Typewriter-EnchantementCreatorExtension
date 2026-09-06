@@ -1,5 +1,4 @@
 package btcrenaud.enchantment.actions.armor
-import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -45,7 +44,7 @@ class ToxicAuraActionEntry(
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
 
         if (event.finalDamage >= minimumDamageThreshold) {
-            EnchantmentSchedulers.runOnPlayer(player) {
+            Dispatchers.Sync.launch {
                 val enemies = player.getNearbyEntities(radius, radius, radius)
                     .filterIsInstance<LivingEntity>()
                     .filter { it != player && !it.isDead }
@@ -53,7 +52,7 @@ class ToxicAuraActionEntry(
                 for (enemy in enemies) {
                     enemy.addPotionEffect(PotionEffect(PotionEffectType.POISON, poisonDurationTicks, poisonAmplifier))
                 }
-                
+
                 // Visual aura
                 player.world.spawnParticle(org.bukkit.Particle.TOTEM_OF_UNDYING, player.location.add(0.0, 1.0, 0.0), 30, radius / 2.0, 0.5, radius / 2.0, 0.1)
                 player.playSound(player.location, org.bukkit.Sound.ENTITY_CREEPER_HURT, 1f, 0.5f)

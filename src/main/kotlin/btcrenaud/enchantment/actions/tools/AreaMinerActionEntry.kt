@@ -1,5 +1,4 @@
 package btcrenaud.enchantment.actions.tools
-import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
@@ -35,21 +34,21 @@ class AreaMinerActionEntry(
 
     override fun ActionTrigger.execute() {
         val event = context.get(BukkitEventContextKey) as? BlockBreakEvent ?: return
-        
+
         // Anti-infinite loop protection: Ensure we are only triggering on primary block break
         // A better production implementation would check raytrace to determine face broken for orientation,
         // but a simple 3x3 centering on the block works universally.
-        
+
         val center = event.block
         val item: ItemStack = player.inventory.itemInMainHand
-        
-        EnchantmentSchedulers.runOnPlayer(player) {
+
+        Dispatchers.Sync.launch {
             for (x in -1..1) {
                 for (y in -1..1) {
                     for (z in -1..1) {
                         if (x == 0 && y == 0 && z == 0) continue
                         val b: Block = center.getRelative(x, y, z)
-                        
+
                         // Break if it matches typical ground/stone and isn't liquid/bedrock
                         if (!b.type.isAir && b.type.isSolid && b.type != org.bukkit.Material.BEDROCK) {
                             // Folia/Paper safe break via player action replication

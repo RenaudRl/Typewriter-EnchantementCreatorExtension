@@ -1,5 +1,4 @@
 package btcrenaud.enchantment.actions.tools
-import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
@@ -38,10 +37,10 @@ class VeinMinerActionEntry(
         val event = context.get(BukkitEventContextKey) as? BlockBreakEvent ?: return
         val originType = event.block.type
         val item: ItemStack = player.inventory.itemInMainHand
-        
+
         if (!originType.name.contains("ORE")) return
 
-        EnchantmentSchedulers.runOnPlayer(player) {
+        Dispatchers.Sync.launch {
             val toBreak = mutableSetOf<Block>()
             val visited = mutableSetOf<Block>()
             toBreak.add(event.block)

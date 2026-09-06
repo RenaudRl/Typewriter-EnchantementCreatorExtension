@@ -1,5 +1,4 @@
 package btcrenaud.enchantment.actions.combat
-import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
@@ -38,7 +37,7 @@ class SilenceActionEntry(
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
         val target = event.entity as? LivingEntity ?: return
 
-        EnchantmentSchedulers.runOnEntity(target) {
+        Dispatchers.Sync.launch {
             target.addPotionEffect(PotionEffect(PotionEffectType.MINING_FATIGUE, durationTicks, 4))
             target.addPotionEffect(PotionEffect(PotionEffectType.WEAKNESS, durationTicks, 1))
             target.world.spawnParticle(org.bukkit.Particle.WITCH, target.eyeLocation, 10, 0.4, 0.4, 0.4, 0.05)

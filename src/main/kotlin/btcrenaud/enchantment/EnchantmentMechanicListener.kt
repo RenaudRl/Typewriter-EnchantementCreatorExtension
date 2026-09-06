@@ -34,30 +34,36 @@ object EnchantmentMechanicListener : Initializable, Listener {
     }
 
     private fun processEvent(player: Player, eventType: EnchantmentEvent, bukkitEvent: org.bukkit.event.Event) {
-        val customDefs = EnchantmentManager.definitions()
-            .asSequence()
-            .filterIsInstance<CustomEnchantmentDefinition>()
-            .toList()
+        val playerActiveSet = EnchantmentManager.active[player.uniqueId] ?: return
+
+        val customDefs = playerActiveSet.filterIsInstance<CustomEnchantmentDefinition>()
         if (customDefs.isEmpty()) return
 
+        val equipment = buildList {
+            add(player.inventory.itemInMainHand)
+            add(player.inventory.itemInOffHand)
+            addAll(player.inventory.armorContents)
+        }
+
+        val ctx = context {
+            put(BukkitEventContextKey, bukkitEvent)
+        }
+
         for (def in customDefs) {
-            val match = EnchantmentManager.activeEquipment(player, def)
-            val level = match.level
+            val enchantment = EnchantmentManager.getEnchantment(def) ?: continue
+            val level = equipment.filterNotNull()
+                .filter { it.type in def.supportedItems }
+                .maxOfOrNull { it.getEnchantmentLevel(enchantment) } ?: 0
+
             if (level <= 0) continue
 
             for (mechanic in def.mechanics) {
                 if (mechanic.event != eventType) continue
-                if (!EnchantmentRuntime.matchesLevel(mechanic.levelMode, mechanic.runOnLevel, level)) continue
-                if (Random.nextInt(100) >= EnchantmentRuntime.clampChance(mechanic.chance)) continue
-                val ctx = context {
-                    put(BukkitEventContextKey, bukkitEvent)
-                    put(EnchantmentLevelContextKey, level)
-                    match.slot?.let { put(EnchantmentSlotContextKey, it) }
-                    put(EnchantmentLevelModeContextKey, mechanic.levelMode)
-                }
+                if (mechanic.runOnLevel > 0 && mechanic.runOnLevel != level) continue
+                if (mechanic.chance < 100 && Random.nextInt(100) >= mechanic.chance) continue
                 if (!mechanic.criteria.matches(player, ctx)) continue
 
-                mechanic.actions.triggerEnchantmentActions(player, ctx, mechanic.eventPhase)
+                mechanic.actions.triggerEntriesFor(player, ctx)
                 mechanic.clientSideEffects.triggerEntriesFor(player, ctx)
             }
         }
@@ -146,9 +152,9 @@ object EnchantmentMechanicListener : Initializable, Listener {
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     fun onPlayerMove(event: org.bukkit.event.player.PlayerMoveEvent) {
         val player = event.player
-        // Anti-lag: Only calculate if changing blocks, and throttle 
+        // Anti-lag: Only calculate if changing blocks, and throttle
         if (event.from.blockX == event.to.blockX && event.from.blockY == event.to.blockY && event.from.blockZ == event.to.blockZ) return
-        
+
         if (player.ticksLived % 4 == 0) {
             processEvent(player, EnchantmentEvent.PLAYER_MOVE, event)
         }

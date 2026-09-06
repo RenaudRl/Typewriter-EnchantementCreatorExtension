@@ -1,5 +1,4 @@
 package btcrenaud.enchantment.actions.tools
-import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
@@ -35,12 +34,12 @@ class IndestructibleActionEntry(
 
     override fun ActionTrigger.execute() {
         val event = context.get(BukkitEventContextKey) as? BlockBreakEvent ?: return
-        
-        EnchantmentSchedulers.runOnPlayer(player) {
+
+        Dispatchers.Sync.launch {
             if (Random.nextDouble() <= repairChance) {
                 val item = player.inventory.itemInMainHand
-                val meta = item.itemMeta as? Damageable ?: return@runOnPlayer
-                
+                val meta = item.itemMeta as? Damageable ?: return@launch
+
                 if (meta.damage > 0) {
                     // Repair 2 durability (1 to cancel the break, 1 to actually repair)
                     meta.damage = (meta.damage - 2).coerceAtLeast(0)

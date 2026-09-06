@@ -1,5 +1,4 @@
 package btcrenaud.enchantment.actions.tools
-import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -37,9 +36,9 @@ class NightVisionActionEntry(
 
     override fun ActionTrigger.execute() {
         val event = context.get(BukkitEventContextKey) as? PlayerInteractEvent ?: return
-        
+
         if (event.action == Action.RIGHT_CLICK_AIR || event.action == Action.RIGHT_CLICK_BLOCK) {
-            EnchantmentSchedulers.runOnPlayer(player) {
+            Dispatchers.Sync.launch {
                 player.addPotionEffect(PotionEffect(PotionEffectType.NIGHT_VISION, durationTicks, 0, false, false, true))
                 player.playSound(player.location, org.bukkit.Sound.BLOCK_BEACON_ACTIVATE, 0.5f, 2.0f)
             }

@@ -1,5 +1,4 @@
 package btcrenaud.enchantment.actions.combat
-import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -39,9 +38,9 @@ class CleaveActionEntry(
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
         val primaryTarget = event.entity as? LivingEntity ?: return
 
-        EnchantmentSchedulers.runOnPlayer(player) {
+        Dispatchers.Sync.launch {
             val aoeDamage = event.finalDamage * damageMultiplier
-            
+
             val enemies = primaryTarget.getNearbyEntities(radius, radius, radius)
                 .filterIsInstance<LivingEntity>()
                 .filter { it != player && !it.isDead && it != primaryTarget }

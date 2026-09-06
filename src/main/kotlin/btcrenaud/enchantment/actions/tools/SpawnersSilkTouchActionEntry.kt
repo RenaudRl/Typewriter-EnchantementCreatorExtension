@@ -1,5 +1,4 @@
 package btcrenaud.enchantment.actions.tools
-import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
@@ -36,19 +35,20 @@ class SpawnersSilkTouchActionEntry(
     override fun ActionTrigger.execute() {
         val event = context.get(BukkitEventContextKey) as? BlockBreakEvent ?: return
         val block = event.block
-        
+
         if (block.type == Material.SPAWNER) {
             val spawner = block.state as? CreatureSpawner ?: return
-            event.expToDrop = 0
-            EnchantmentSchedulers.runOnPlayer(player) {
+
+            Dispatchers.Sync.launch {
+                event.expToDrop = 0
                 val spawnerItem = ItemStack(Material.SPAWNER)
                 val meta = spawnerItem.itemMeta as BlockStateMeta
                 val metaState = meta.blockState as CreatureSpawner
-                
+
                 metaState.spawnedType = spawner.spawnedType
                 meta.blockState = metaState
                 spawnerItem.itemMeta = meta
-                
+
                 player.world.dropItemNaturally(block.location, spawnerItem)
                 player.world.spawnParticle(org.bukkit.Particle.ENCHANT, block.location.add(0.5, 0.5, 0.5), 30, 0.3, 0.3, 0.3, 0.1)
             }

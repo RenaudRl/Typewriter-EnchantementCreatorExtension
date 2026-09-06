@@ -1,5 +1,4 @@
 package btcrenaud.enchantment.actions.special
-import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -34,10 +33,10 @@ class ElytraShieldActionEntry(
 
     override fun ActionTrigger.execute() {
         val event = context.get(BukkitEventContextKey) as? EntityDamageEvent ?: return
-        
+
         if (event.cause == EntityDamageEvent.DamageCause.FLY_INTO_WALL) {
-            event.damage -= (event.damage * damageReduction)
-            EnchantmentSchedulers.runOnPlayer(player) {
+            Dispatchers.Sync.launch {
+                event.damage -= (event.damage * damageReduction)
                 player.world.spawnParticle(org.bukkit.Particle.ENCHANTED_HIT, player.location, 10, 0.5, 0.5, 0.5, 0.1)
                 player.playSound(player.location, org.bukkit.Sound.ITEM_SHIELD_BLOCK, 1f, 1.5f)
             }

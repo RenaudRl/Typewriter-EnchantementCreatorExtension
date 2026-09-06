@@ -1,5 +1,4 @@
 package btcrenaud.enchantment.actions.tools
-import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
@@ -37,9 +36,9 @@ class BedrockBreakerActionEntry(
     override fun ActionTrigger.execute() {
         val event = context.get(BukkitEventContextKey) as? PlayerInteractEvent ?: return // Using interact because you can't normally break bedrock
         val block = event.clickedBlock ?: return
-        
+
         if (event.action == Action.LEFT_CLICK_BLOCK && block.type == Material.BEDROCK) {
-            EnchantmentSchedulers.runOnPlayer(player) {
+            Dispatchers.Sync.launch {
                 if (Random.nextDouble() <= chance) {
                     block.type = Material.AIR
                     player.world.dropItemNaturally(block.location, org.bukkit.inventory.ItemStack(Material.BEDROCK))

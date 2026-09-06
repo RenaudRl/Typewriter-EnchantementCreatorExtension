@@ -1,5 +1,4 @@
 package btcrenaud.enchantment.actions
-import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -36,13 +35,13 @@ class AgriculturalHarvestActionEntry(
 ) : ActionEntry {
 
     override fun ActionTrigger.execute() {
-        // Obtenir la cible locale (le bloc initialement cassé) du context 
+        // Obtenir la cible locale (le bloc initialement cassé) du context
         // L'action est conçue pour être déclenchée via EnchantmentEvent.BLOCK_BREAK.
         // Comme le context de l'engine n'expose pas directement le bloc, on prend la ligne de vue.
         val targetBlock = player.getTargetBlockExact(5) ?: return
-        
+
         // Optimisation Folia : on s'assure d'exécuter la modification du monde en Sync sur la région
-        EnchantmentSchedulers.runOnPlayer(player) {
+        Dispatchers.Sync.launch {
             val world = targetBlock.world
             val centerLoc = targetBlock.location
             val itemsToDrop = mutableMapOf<Material, Int>()

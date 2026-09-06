@@ -1,5 +1,4 @@
 package btcrenaud.enchantment.actions.tools
-import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -11,6 +10,10 @@ import com.typewritermc.engine.paper.entry.TriggerableEntry
 import com.typewritermc.engine.paper.entry.entries.ActionEntry
 import com.typewritermc.engine.paper.entry.entries.ActionTrigger
 import btcrenaud.enchantment.BukkitEventContextKey
+import com.typewritermc.core.utils.launch
+import com.typewritermc.engine.paper.utils.Sync
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import org.bukkit.entity.Item
 import org.bukkit.event.block.BlockBreakEvent
 
@@ -32,13 +35,15 @@ class MagnetActionEntry(
 
     override fun ActionTrigger.execute() {
         val event = context.get(BukkitEventContextKey) as? BlockBreakEvent ?: return
-        
-        EnchantmentSchedulers.runOnPlayerLater(player, 1L) {
+
+        Dispatchers.Sync.launch {
             // Briefly delay so the broken block's items have a chance to drop
+            delay(50L)
+
             val items = player.getNearbyEntities(radius, radius, radius)
                 .filterIsInstance<Item>()
                 .filter { it.pickupDelay <= 20 }
-                
+
             for (item in items) {
                 val direction = player.location.toVector().subtract(item.location.toVector()).normalize()
                 item.velocity = direction.multiply(0.8)

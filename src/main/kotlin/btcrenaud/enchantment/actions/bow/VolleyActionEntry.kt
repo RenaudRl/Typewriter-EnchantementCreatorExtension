@@ -1,5 +1,4 @@
 package btcrenaud.enchantment.actions.bow
-import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -39,7 +38,7 @@ class VolleyActionEntry(
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? EntityShootBowEvent ?: return
         val originalProjectile = event.projectile
 
-        EnchantmentSchedulers.runOnPlayer(player) {
+        Dispatchers.Sync.launch {
             val world = originalProjectile.world
             val loc = originalProjectile.location
             val velocity = originalProjectile.velocity
@@ -47,7 +46,7 @@ class VolleyActionEntry(
             for (i in 1..extraArrows) {
                 // Alternating left/right spread
                 val angle = spread * ((i + 1) / 2) * if (i % 2 == 0) -1.0 else 1.0
-                
+
                 val newVelocity = Vector(
                     velocity.x * Math.cos(angle) - velocity.z * Math.sin(angle),
                     velocity.y,

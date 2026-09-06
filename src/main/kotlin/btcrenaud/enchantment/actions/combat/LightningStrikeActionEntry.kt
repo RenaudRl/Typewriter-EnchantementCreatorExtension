@@ -1,5 +1,4 @@
 package btcrenaud.enchantment.actions.combat
-import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -33,7 +32,7 @@ class LightningStrikeActionEntry(
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
         val target = event.entity
 
-        EnchantmentSchedulers.runOnEntity(target) {
+        Dispatchers.Sync.launch {
             target.world.strikeLightningEffect(target.location)
         }
     }

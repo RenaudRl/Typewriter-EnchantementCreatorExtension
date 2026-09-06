@@ -1,5 +1,4 @@
 package btcrenaud.enchantment.actions.armor
-import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -37,7 +36,7 @@ class ThornsAdvancedActionEntry(
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
         val attacker = event.damager as? LivingEntity ?: return
 
-        EnchantmentSchedulers.runOnEntity(attacker) {
+        Dispatchers.Sync.launch {
             val reflected = event.damage * reflectPercentage
             if (attacker.health - reflected > 0) {
                 attacker.health -= reflected

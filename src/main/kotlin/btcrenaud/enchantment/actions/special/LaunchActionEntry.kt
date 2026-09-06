@@ -1,5 +1,4 @@
 package btcrenaud.enchantment.actions.special
-import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -35,9 +34,9 @@ class LaunchActionEntry(
 
     override fun ActionTrigger.execute() {
         val event = context.get(BukkitEventContextKey) as? PlayerInteractEvent ?: return
-        
+
         if (event.action == Action.RIGHT_CLICK_AIR || event.action == Action.RIGHT_CLICK_BLOCK) {
-            EnchantmentSchedulers.runOnPlayer(player) {
+            Dispatchers.Sync.launch {
                 val dir = player.location.direction.normalize()
                 player.velocity = player.velocity.add(dir.multiply(power))
                 player.world.spawnParticle(org.bukkit.Particle.CLOUD, player.location, 20, 0.5, 0.0, 0.5, 0.1)

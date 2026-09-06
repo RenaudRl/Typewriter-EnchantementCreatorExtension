@@ -1,5 +1,4 @@
 package btcrenaud.enchantment.actions.armor
-import btcrenaud.enchantment.EnchantmentSchedulers
 
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
@@ -44,7 +43,7 @@ class VoodooArmorActionEntry(
         val event = context.get(btcrenaud.enchantment.BukkitEventContextKey) as? EntityDamageByEntityEvent ?: return
         val attacker = event.damager as? LivingEntity ?: return
 
-        EnchantmentSchedulers.runOnEntity(attacker) {
+        Dispatchers.Sync.launch {
             if (Random.nextDouble() <= chance) {
                 attacker.addPotionEffect(PotionEffect(PotionEffectType.WEAKNESS, durationTicks, amplifier))
                 attacker.world.spawnParticle(org.bukkit.Particle.WITCH, attacker.eyeLocation, 5, 0.3, 0.3, 0.3, 0.1)
