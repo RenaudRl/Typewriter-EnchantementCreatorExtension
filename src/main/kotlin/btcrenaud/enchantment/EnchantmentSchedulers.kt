@@ -1,6 +1,8 @@
 package btcrenaud.enchantment
 
 import com.typewritermc.engine.paper.plugin
+import org.bukkit.Bukkit
+import org.bukkit.Location
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
 
@@ -17,6 +19,11 @@ object EnchantmentSchedulers {
     fun runOnEntity(entity: Entity, block: () -> Unit) {
         if (!entity.isValid) return
         entity.scheduler.run(plugin, { block() }, null)
+    }
+
+    /** Runs [block] on the region that owns [location], the only thread allowed to edit blocks there. */
+    fun runAtLocation(location: Location, block: () -> Unit) {
+        Bukkit.getRegionScheduler().run(plugin, location) { block() }
     }
 
     fun runOnPlayerLater(player: Player, delayTicks: Long, block: () -> Unit) {

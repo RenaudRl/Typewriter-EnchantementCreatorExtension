@@ -1,19 +1,23 @@
 package btcrenaud.enchantment.actions
 
+import btcrenaud.enchantment.BukkitEventContextKey
+import btcrenaud.enchantment.EnchantmentSchedulers
 import com.typewritermc.core.books.pages.Colors
 import com.typewritermc.core.entries.Ref
 import com.typewritermc.core.extension.annotations.Entry
 import com.typewritermc.core.extension.annotations.Help
+import com.typewritermc.core.extension.annotations.Min
 import com.typewritermc.engine.paper.entry.Criteria
 import com.typewritermc.engine.paper.entry.Modifier
 import com.typewritermc.engine.paper.entry.TriggerableEntry
 import com.typewritermc.engine.paper.entry.entries.ActionEntry
 import com.typewritermc.engine.paper.entry.entries.ActionTrigger
-import com.typewritermc.core.utils.launch
-import kotlinx.coroutines.Dispatchers
-import com.typewritermc.engine.paper.utils.Sync
+import org.bukkit.Location
 import org.bukkit.Material
+import org.bukkit.Particle
 import org.bukkit.block.data.Ageable
+import org.bukkit.entity.Player
+import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.inventory.ItemStack
 
 @Entry(
@@ -29,67 +33,73 @@ class AgriculturalHarvestActionEntry(
     override val modifiers: List<Modifier> = emptyList(),
     override val triggers: List<Ref<TriggerableEntry>> = emptyList(),
     @Help("Radius on the X and Z axis to harvest (e.g., 1 for a 3x3 area)")
+    @Min(0)
     val radius: Int = 1,
     @Help("Should crops be automatically replanted (set age to 0)?")
-    val autoReplant: Boolean = true
+    val autoReplant: Boolean = true,
+    @Help("Particle shown over the harvested area. Particles that need extra data are ignored.")
+    val particle: Particle = Particle.COMPOSTER,
+    @Help("How many particles are shown once per harvest. 0 disables them.")
+    @Min(0)
+    val particleCount: Int = 15,
+    @Help("Sound key played once per harvest (e.g. block.crop.break). Leave blank for no sound.")
+    val sound: String = "block.crop.break",
 ) : ActionEntry {
 
+    /**
+     * Harvests around the block of the [BlockBreakEvent] that fired the enchantment, so it only does
+     * something on a `BLOCK_BREAK` mechanic. The broken block itself is left to the normal break.
+     */
     override fun ActionTrigger.execute() {
-        // Obtenir la cible locale (le bloc initialement cassé) du context
-        // L'action est conçue pour être déclenchée via EnchantmentEvent.BLOCK_BREAK.
-        // Comme le context de l'engine n'expose pas directement le bloc, on prend la ligne de vue.
-        val targetBlock = player.getTargetBlockExact(5) ?: return
+        val event = context.get(BukkitEventContextKey) as? BlockBreakEvent ?: return
 
-        // Optimisation Folia : on s'assure d'exécuter la modification du monde en Sync sur la région
-        Dispatchers.Sync.launch {
-            val world = targetBlock.world
-            val centerLoc = targetBlock.location
-            val itemsToDrop = mutableMapOf<Material, Int>()
+        val center = event.block.location
+        // Read on the player's own thread; the region thread that edits blocks must not touch the inventory.
+        val tool = player.inventory.itemInMainHand.clone()
 
-            for (x in -radius..radius) {
-                for (z in -radius..radius) {
-                    val currentBlock = world.getBlockAt(centerLoc.blockX + x, centerLoc.blockY, centerLoc.blockZ + z)
-                    val blockData = currentBlock.blockData
+        EnchantmentSchedulers.runAtLocation(center) {
+            harvest(center, tool)
+            EnchantmentSchedulers.runOnPlayer(player) { showFeedback(player, center) }
+        }
+    }
 
-                    if (blockData is Ageable && blockData.age == blockData.maximumAge) {
-                        // Récolte les items (simulation de cassure)
-                        val drops = currentBlock.getDrops(player.inventory.itemInMainHand, player)
-                        drops.forEach { drop ->
-                            itemsToDrop[drop.type] = (itemsToDrop[drop.type] ?: 0) + drop.amount
-                        }
+    private fun harvest(center: Location, tool: ItemStack) {
+        val world = center.world
+        val itemsToDrop = mutableMapOf<Material, Int>()
 
-                        if (autoReplant) {
-                            // Replantage hyper-optimisé (pas de physique complète)
-                            blockData.age = 0
-                            currentBlock.setBlockData(blockData, false)
-                        } else {
-                            currentBlock.setType(Material.AIR, false)
-                        }
-                    }
-                }
+        for ((dx, dz) in harvestOffsets(radius)) {
+            val currentBlock = world.getBlockAt(center.blockX + dx, center.blockY, center.blockZ + dz)
+            val blockData = currentBlock.blockData
+            if (blockData !is Ageable || blockData.age != blockData.maximumAge) continue
+
+            currentBlock.getDrops(tool).forEach { drop ->
+                itemsToDrop.merge(drop.type, drop.amount, Int::plus)
             }
 
-            // Drop les items fusionnés afin de réduire les entités "Item"
-            itemsToDrop.forEach { (mat, amount) ->
-                var remaining = amount
-                while (remaining > 0) {
-                    val amountToDrop = remaining.coerceAtMost(mat.maxStackSize)
-                    world.dropItemNaturally(player.location, ItemStack(mat, amountToDrop))
-                    remaining -= amountToDrop
-                }
+            if (autoReplant) {
+                // Direct age reset, without a physics update, keeps a large harvest cheap.
+                blockData.age = 0
+                currentBlock.setBlockData(blockData, false)
+            } else {
+                currentBlock.setType(Material.AIR, false)
             }
+        }
 
-            // Single grouped effect for the whole harvest, shown only to the player.
-            player.spawnParticle(
-                org.bukkit.Particle.COMPOSTER,
-                centerLoc,
-                15,
-                radius.toDouble(),
-                0.5,
-                radius.toDouble(),
-                0.1
-            )
-            player.playSound(centerLoc, org.bukkit.Sound.BLOCK_CROP_BREAK, 1f, 1f)
+        // Merged stacks instead of one item entity per drop.
+        val dropLocation = center.clone().add(0.5, 0.5, 0.5)
+        itemsToDrop.forEach { (material, amount) ->
+            stackSizes(amount, material.maxStackSize).forEach { size ->
+                world.dropItemNaturally(dropLocation, ItemStack(material, size))
+            }
+        }
+    }
+
+    private fun showFeedback(player: Player, center: Location) {
+        if (particleCount > 0 && particle.dataType == Void::class.java) {
+            player.spawnParticle(particle, center, particleCount, radius.toDouble(), 0.5, radius.toDouble(), 0.1)
+        }
+        if (sound.isNotBlank()) {
+            player.playSound(center, sound, 1f, 1f)
         }
     }
 }

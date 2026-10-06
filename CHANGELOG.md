@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- `agricultural_harvest_action` now reads the `BlockBreakEvent` of the context and harvests around
+  the broken block, instead of the block the player is looking at. It only acts on a `BLOCK_BREAK`
+  mechanic. The block edit runs on the region that owns the block, and the merged drops appear at
+  that block. New fields `particle`, `particleCount` and `sound` replace the hardcoded effects.
+
 ## 0.8 — 2026-08-12
 
 - `levelMode` on a mechanic compares `runOnLevel` as an exact level, a minimum (`AT_LEAST`) or a
