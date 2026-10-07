@@ -1,10 +1,66 @@
-# TypeWriter-EnchantmentCreator
-Create Enchantments with typewriter
+# EnchantmentCreator
 
+![Java Version](https://img.shields.io/badge/Java-21-orange)
+![Target](https://img.shields.io/badge/Target-Paper-blue)
+![Typewriter](https://img.shields.io/badge/Typewriter-0.9.0--beta--177-purple)
+
+Create custom enchantments in the **Typewriter** web editor, with ready-made effect actions, enchanted books, and the option to blacklist vanilla enchantments. No extra plugin required.
+
+## Features
+
+- Enchantment definitions (`enchantment_definition`, `custom_enchantment_definition`) wired to effect actions.
+- 70 effect actions: damage and status strikes, arrow effects, armor and aura effects, mining and harvesting, movement and utility.
+- Enchanted books through `give_enchantment_book` and the admin command.
+- A blacklist of vanilla enchantments (`vanilla_enchantment_blacklist_definition`).
+- Each mechanic can compare `runOnLevel` as an exact level or a minimum (`levelMode`).
+
+## Entries
+
+| Category | Entries |
+|---|---|
+| Manifest | `enchantment_definition`, `custom_enchantment_definition`, `vanilla_enchantment_blacklist_definition` |
+| Command | `enchantment_command_manifest` |
+| Actions | `give_enchantment_book`, `client_particle_effect` and the effect actions below |
+
+Effect actions:
+`agricultural_harvest_action`, `angel_wings_action`, `anti_knockback_action`, `aquatic_speed_action`, `area_miner_action`, `armor_pierce_action`, `auto_smelt_action`, `bedrock_breaker_action`, `beheading_action`, `bleed_action`, `blindness_strike_action`, `cleave_action`, `curse_of_sluggishness_action`, `curse_of_vulnerability_action`, `deflect_action`, `disarm_action`, `elytra_boost_action`, `elytra_shield_action`, `ender_arrow_action`, `enlightened_armor_action`, `evasion_action`, `executioner_action`, `experience_boost_action`, `explosive_arrow_action`, `feeder_action`, `freeze_strike_action`, `frozen_armor_action`, `gearing_action`, `green_thumb_action`, `hardened_armor_action`, `haste_action`, `healing_arrow_action`, `health_boost_action`, `homing_arrow_action`, `implosion_armor_action`, `indestructible_action`, `launch_action`, `lava_walker_action`, `lifesteal_action`, `lightning_arrow_action`, `lightning_strike_action`, `magnet_action`, `molten_armor_action`, `night_vision_action`, `oxygenate_action`, `piercing_shot_action`, `poison_strike_action`, `pull_arrow_action`, `push_arrow_action`, `regeneration_aura_action`, `resistance_aura_action`, `silence_action`, `sniper_arrow_action`, `soulbound_action`, `spawners_silktouch_action`, `telepathy_action`, `teleport_arrow_action`, `thorns_advanced_action`, `timber_action`, `toxic_aura_action`, `treasure_hunter_action`, `vampiric_aura_action`, `vein_miner_action`, `venom_arrow_action`, `volley_arrow_action`, `voodoo_armor_action`, `web_arrow_action`, `wither_arrow_action`, `wither_strike_action`.
+
+`agricultural_harvest_action` reacts to the block-break event and harvests mature crops around the broken block (`radius` capped at 8), with `particle`, `particleCount`, `sound`, `soundVolume` and `soundPitch` fields.
+
+Full field reference on the [wiki](https://docs.borntocraftstudio.net/extensions/free/enchantmentcreator/).
+
+## Command and permission
+
+Declared by the `enchantment_command_manifest` entry (names are fields of the entry):
+
+| Command | Permission |
+|---|---|
+| `/enchantcreator give <player> <enchant> [level]` | `enchantcreator.admin` |
+
+The command name (`commandName`), the permission (`adminPermission`) and the messages are editable in the entry.
+
+## Requirements
+
+- Typewriter engine `0.9.0-beta-177`, on **Paper**.
+- Typewriter **Basic** extension.
+
+## Building
+
+Requires **Java 21**.
+
+```bash
+./gradlew clean build
+```
+
+Artifact: `build/libs/`.
+
+## Documentation
+
+[BTC Studio Docs](https://docs.borntocraftstudio.net/extensions/free/enchantmentcreator/)
 
 ---
 
-## 📜 Licence
+## 📜 License
 
 **GNU General Public License v3.0 or later** — [LICENSE](LICENSE) — with a
 **linking exception** for the Typewriter engine — [LICENSE-EXCEPTION.md](LICENSE-EXCEPTION.md).
