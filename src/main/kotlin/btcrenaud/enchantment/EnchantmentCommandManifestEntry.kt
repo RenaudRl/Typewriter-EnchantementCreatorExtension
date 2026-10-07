@@ -36,11 +36,11 @@ class EnchantmentCommandManifestEntry(
     val commandName: String = "enchantcreator",
     @Help("Permission required to use the command")
     val adminPermission: String = "enchantcreator.admin",
-    @Help("Message sent when the target player is not online")
+    @Help("Message sent when the target player is not online (placeholder: {player}). MiniMessage is supported")
     val playerNotFound: String = "Player '{player}' is not online.",
-    @Help("Message sent when no enchantment matches the given name")
+    @Help("Message sent when no enchantment matches the given name (placeholder: {enchant}). MiniMessage is supported")
     val enchantmentNotFound: String = "Unknown enchantment '{enchant}'.",
-    @Help("Message sent when the book has been given (placeholders: {player}, {enchant}, {level})")
+    @Help("Message sent when the book has been given (placeholders: {player}, {enchant}, {level}). MiniMessage is supported")
     val bookGiven: String = "Gave {enchant} {level} to {player}.",
 ) : ManifestEntry, CustomCommandEntry {
 
