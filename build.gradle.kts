@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "btcrenaud"
-version = "0.10"
+version = "0.11"
 
 base {
     archivesName.set("EnchantmentCreatorExtension")
