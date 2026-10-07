@@ -61,27 +61,36 @@ class EnchantmentCommandManifestEntry(
     private fun give(sender: org.bukkit.command.CommandSender, playerName: String, enchantName: String, level: Int) {
         val target = server.getPlayerExact(playerName)
         if (target == null) {
-            sender.sendMessage(playerNotFound.replace("{player}", playerName).asMini())
+            sender.sendMessage(
+                playerNotFound.fillPlaceholders(mapOf("player" to escapeMiniMessage(playerName))).asMini()
+            )
             return
         }
         val def = findDefinition(enchantName)
         if (def == null) {
-            sender.sendMessage(enchantmentNotFound.replace("{enchant}", enchantName).asMini())
+            sender.sendMessage(
+                enchantmentNotFound.fillPlaceholders(mapOf("enchant" to escapeMiniMessage(enchantName))).asMini()
+            )
             return
         }
         val book = EnchantmentManager.buildBook(def, level)
         if (book == null) {
-            sender.sendMessage(enchantmentNotFound.replace("{enchant}", enchantName).asMini())
+            sender.sendMessage(
+                enchantmentNotFound.fillPlaceholders(mapOf("enchant" to escapeMiniMessage(enchantName))).asMini()
+            )
             return
         }
         val leftover = target.inventory.addItem(book)
         leftover.values.forEach { target.world.dropItemNaturally(target.location, it) }
         sender.sendMessage(
-            bookGiven
-                .replace("{player}", target.name)
-                .replace("{enchant}", def.displayName.ifBlank { def.name })
-                .replace("{level}", level.toString())
-                .asMini()
+            bookGiven.fillPlaceholders(
+                mapOf(
+                    "player" to escapeMiniMessage(target.name),
+                    // Written by the admin in the enchantment entry: its formatting is intentional.
+                    "enchant" to def.displayName.ifBlank { def.name },
+                    "level" to level.toString(),
+                )
+            ).asMini()
         )
     }
 
