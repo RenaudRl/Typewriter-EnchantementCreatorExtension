@@ -9,10 +9,10 @@ Create custom enchantments in the **Typewriter** web editor, with ready-made eff
 ## Features
 
 - Enchantment definitions (`enchantment_definition`, `custom_enchantment_definition`) wired to effect actions.
-- 70 effect actions: damage and status strikes, arrow effects, armor and aura effects, mining and harvesting, movement and utility.
+- 69 effect actions: damage and status strikes, arrow effects, armor and aura effects, mining and harvesting, movement and utility.
 - Enchanted books through `give_enchantment_book` and the admin command.
 - A blacklist of vanilla enchantments (`vanilla_enchantment_blacklist_definition`).
-- Each mechanic can compare `runOnLevel` as an exact level or a minimum (`levelMode`).
+- Each mechanic can be limited to one exact enchantment level with `runOnLevel` (`0` = every level).
 
 ## Entries
 
