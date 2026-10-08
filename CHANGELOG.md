@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.11 — 2026-10-08
 
 - `agricultural_harvest_action` now reads the `BlockBreakEvent` of the context and harvests around
   the broken block, instead of the block the player is looking at. It only acts on a `BLOCK_BREAK`
