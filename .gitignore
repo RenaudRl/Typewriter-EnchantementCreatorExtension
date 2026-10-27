@@ -12,3 +12,4 @@ out/
 # Le moteur Typewriter NE DOIT PAS etre redistribue : sa licence l'interdit
 # explicitement (Typewriter Software License Agreement, 3.1).
 libs/
+.vscode/
